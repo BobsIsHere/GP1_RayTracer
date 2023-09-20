@@ -23,12 +23,12 @@ namespace dae
 			float adjacentSideSquared{ powf(sphere.radius, 2) - oppDistanceSquared };
 			if (adjacentSideSquared < 0)
 			{
-				return false;
+				return hitRecord.didHit = false;
 			}
 
 			//float distanceCamToInt{ dotProduct - adjacentSideSquared };
 			//Vector3 intersectionPoint{ ray.origin + distanceCamToInt * ray.direction };
-			return true;
+			return hitRecord.didHit = true;
 		}
 
 	//Vector3{ray.direction.x / lengthRay, ray.direction.y / lengthRay, ray.direction.z / lengthRay

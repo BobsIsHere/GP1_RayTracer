@@ -46,7 +46,7 @@ void Renderer::Render(Scene* pScene) const
 	//			static_cast<uint8_t>(finalColor.b * 255));
 	//	}
 	//}
-	int ascpectRatio{ m_Width / m_Height };
+	float ascpectRatio{ m_Width / static_cast<float>(m_Height) };
 
 	//How work?
 	for (int px{}; px < m_Width; ++px)
@@ -58,15 +58,20 @@ void Renderer::Render(Scene* pScene) const
 
 			Vector3 rayDirection{ x,y, 1.f };
 
-			// lot of clip offs when dont normalize
-			//max value of x, y, z component will be 1 when normalize
-			rayDirection.Normalize();
+			Ray viewRay{ {0,0,0}, rayDirection.Normalized() };
 
-			Ray hitRay{ {0,0,0}, rayDirection };
-			ColorRGB finalColor{ rayDirection.x, rayDirection.y, rayDirection.z };
+			ColorRGB finalColor{};
 
-			//Update Color in Buffer
-			finalColor.MaxToOne();
+			HitRecord closestHit{};
+
+			Sphere testSphere{ {0.f,0.f,100.f}, 50.f,0 };
+
+			GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
+
+			if (closestHit.didHit)
+			{
+				finalColor = materials[closestHit.materialIndex]->Shade();
+			}
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
 				static_cast<uint8_t>(finalColor.r * 255),
