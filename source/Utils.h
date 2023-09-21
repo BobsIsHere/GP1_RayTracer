@@ -12,12 +12,14 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
+			if (ignoreHitRecord){ return false; }
+			
 			Vector3 vecToCenter{ sphere.origin - ray.origin };
-			float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			float oppDistanceSquared{ powf(vecToCenter.Magnitude(), 2) - powf(dotProduct, 2) };
+			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
+			const float oppDistanceSquared{ powf(vecToCenter.Magnitude(), 2) - powf(dotProduct, 2) };
 
 			// If radius is smaller than adjacent side = no hit
-			float adjacentSideSquared{ powf(sphere.radius, 2) - oppDistanceSquared };
+			const float adjacentSideSquared{ powf(sphere.radius, 2) - oppDistanceSquared };
 			if (adjacentSideSquared < 0)
 			{
 				return hitRecord.didHit = false;
@@ -37,9 +39,24 @@ namespace dae
 		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
+			//if t is within limits (min and max)
+			// -> intersection
+			if (ignoreHitRecord) { return false; }
 			
-			return false;
+			Vector3 vecPlaneToOrigin{ ray.origin, plane.origin };
+			const float dotProduct{ Vector3::Dot(vecPlaneToOrigin,plane.normal) };
+			const float dotNormals{ Vector3::Dot(ray.direction, plane.normal)};
+			const float t{ dotProduct / dotNormals };
+			//const float t{ Vector3::Dot(Vector3{ray.origin, plane.origin}, plane.normal) / Vector3::Dot(ray.direction, plane.normal) };
+			if (t < ray.max && t > ray.min)
+			{
+				hitRecord.materialIndex = plane.materialIndex;
+				hitRecord.t = t;
+				/*hitRecord.normal = plane.normal;
+				hitRecord.origin = ray.origin + t * ray.direction;*/
+				return hitRecord.didHit = true;
+			}
+			return hitRecord.didHit = false;
 		}
 
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray)

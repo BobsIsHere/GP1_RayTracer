@@ -43,6 +43,19 @@ namespace dae {
 				}
 			}
 		}
+
+		for (int idx = 0; idx < m_PlaneGeometries.size(); ++idx)
+		{
+			GeometryUtils::HitTest_Plane(m_PlaneGeometries[idx], ray, currentHit);
+			if (currentHit.didHit)
+			{
+				//if new hit is closer than current closer hit than store current hit in closerHit
+				if (currentHit.t < closestHit.t)
+				{
+					closestHit = currentHit;
+				}
+			}
+		}
 	}
 
 	bool Scene::DoesHit(const Ray& ray) const

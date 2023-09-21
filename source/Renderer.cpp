@@ -38,22 +38,32 @@ void Renderer::Render(Scene* pScene) const
 
 			Vector3 rayDirection{ x,y, 1.f };
 
+			rayDirection.Normalize();
+
 			//Ray we are casting from canera towards each pixel
-			Ray viewRay{ {0,0,0}, rayDirection.Normalized() };
+			Ray viewRay{ {0,0,0}, rayDirection };
 
 			//Color to write to color buffer (default = black)
 			ColorRGB finalColor{};
 
 			//HitRecord containing more info about potential hit
 			HitRecord closestHit{};
-			pScene->GetClosestHit(viewRay, closestHit);
+			//pScene->GetClosestHit(viewRay, closestHit);
+
+			Plane testPlane{ {0.f,-50.f,0.f},{0.f,1.f,0.f}, 0};
+			GeometryUtils::HitTest_Plane(testPlane, viewRay, closestHit);
 
 			if (closestHit.didHit)
 			{
 				//if we hit something, set finalColor to material color, else keep black
 				//use HitRecord::materialindex to find corresponding material
-				finalColor = materials[closestHit.materialIndex]->Shade();
+				//finalColor = materials[closestHit.materialIndex]->Shade();
+
+				const float scaled_t = closestHit.t / 500.f;
+				finalColor = { scaled_t , scaled_t , scaled_t };
 			}
+
+			finalColor.MaxToOne();
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
 				static_cast<uint8_t>(finalColor.r * 255),
