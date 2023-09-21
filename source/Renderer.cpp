@@ -27,25 +27,6 @@ void Renderer::Render(Scene* pScene) const
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
-	//for (int px{}; px < m_Width; ++px)
-	//{
-	//	for (int py{}; py < m_Height; ++py)
-	//	{
-	//		float gradient = px / static_cast<float>(m_Width);
-	//		gradient += py / static_cast<float>(m_Width);
-	//		gradient /= 2.0f;
-
-	//		ColorRGB finalColor{ gradient, gradient, gradient };
-
-	//		//Update Color in Buffer
-	//		finalColor.MaxToOne();
-
-	//		m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
-	//			static_cast<uint8_t>(finalColor.r * 255),
-	//			static_cast<uint8_t>(finalColor.g * 255),
-	//			static_cast<uint8_t>(finalColor.b * 255));
-	//	}
-	//}
 	float ascpectRatio{ m_Width / static_cast<float>(m_Height) };
 
 	for (int px{}; px < m_Width; ++px)
@@ -66,9 +47,6 @@ void Renderer::Render(Scene* pScene) const
 			//HitRecord containing more info about potential hit
 			HitRecord closestHit{};
 			pScene->GetClosestHit(viewRay, closestHit);
-
-			/*Sphere testSphere{ {0.f,0.f,100.f}, 50.f,0 };
-			GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);*/
 
 			if (closestHit.didHit)
 			{

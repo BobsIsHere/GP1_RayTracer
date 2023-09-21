@@ -14,24 +14,17 @@ namespace dae
 		{
 			Vector3 vecToCenter{ sphere.origin - ray.origin };
 			float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			//float oppDistance{ sqrt(powf(vecToCenter.Magnitude(), 2) - powf(dotProduct, 2)) };
 			float oppDistanceSquared{ powf(vecToCenter.Magnitude(), 2) - powf(dotProduct, 2) };
 
-			//float adjacentSide{ sqrt(powf(sphere.radius, 2) - powf(oppDistance,2)) };
-			//float adjacentSide{ sqrt(powf(sphere.radius, 2) - oppDistanceSquared) };
 			// If radius is smaller than adjacent side = no hit
 			float adjacentSideSquared{ powf(sphere.radius, 2) - oppDistanceSquared };
 			if (adjacentSideSquared < 0)
 			{
 				return hitRecord.didHit = false;
 			}
-			//float distanceCamToInt{ dotProduct - adjacentSideSquared };
-			//Vector3 intersectionPoint{ ray.origin + distanceCamToInt * ray.direction }; 
 			hitRecord.t = dotProduct - sqrt(adjacentSideSquared);
 			return hitRecord.didHit = true;
 		}
-
-	//Vector3{ray.direction.x / lengthRay, ray.direction.y / lengthRay, ray.direction.z / lengthRay
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
 		{
@@ -44,7 +37,7 @@ namespace dae
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			//todo W1
-			assert(false && "No Implemented Yet!");
+			
 			return false;
 		}
 
