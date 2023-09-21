@@ -23,6 +23,7 @@ namespace dae
 				return hitRecord.didHit = false;
 			}
 			hitRecord.t = dotProduct - sqrt(adjacentSideSquared);
+			hitRecord.materialIndex = sphere.materialIndex;
 			return hitRecord.didHit = true;
 		}
 
