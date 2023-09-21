@@ -48,7 +48,6 @@ void Renderer::Render(Scene* pScene) const
 	//}
 	float ascpectRatio{ m_Width / static_cast<float>(m_Height) };
 
-	//How work?
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
@@ -70,7 +69,14 @@ void Renderer::Render(Scene* pScene) const
 
 			if (closestHit.didHit)
 			{
-				finalColor = materials[closestHit.materialIndex]->Shade();
+				//if we hit something, set finalColor to material color, else keep black
+				//use HitRecord::materialindex to find corresponding material
+				//finalColor = materials[closestHit.materialIndex]->Shade();
+
+				//verify t-values
+				//remap t-value to [0,1] (should lay between ~[50,90])
+				const float scaled_t{ (closestHit.t - 50.f) / 40.f };
+				finalColor = { scaled_t, scaled_t, scaled_t };
 			}
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,

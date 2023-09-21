@@ -171,6 +171,7 @@ namespace dae
 	{
 		Vector3 origin{};
 		Vector3 normal{};
+		//distance from origin to hitPixel along the normal/ray
 		float t = FLT_MAX;
 
 		bool didHit{ false };

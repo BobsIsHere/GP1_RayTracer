@@ -13,7 +13,7 @@ namespace dae
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			Vector3 vecToCenter{ sphere.origin - ray.origin };
-			float dotProduct{ Vector3::Dot(ray.direction, vecToCenter)};
+			float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
 			//float oppDistance{ sqrt(powf(vecToCenter.Magnitude(), 2) - powf(dotProduct, 2)) };
 			float oppDistanceSquared{ powf(vecToCenter.Magnitude(), 2) - powf(dotProduct, 2) };
 
@@ -25,9 +25,9 @@ namespace dae
 			{
 				return hitRecord.didHit = false;
 			}
-
 			//float distanceCamToInt{ dotProduct - adjacentSideSquared };
-			//Vector3 intersectionPoint{ ray.origin + distanceCamToInt * ray.direction };
+			//Vector3 intersectionPoint{ ray.origin + distanceCamToInt * ray.direction }; 
+			hitRecord.t = dotProduct - sqrt(adjacentSideSquared);
 			return hitRecord.didHit = true;
 		}
 
