@@ -57,26 +57,24 @@ void Renderer::Render(Scene* pScene) const
 
 			Vector3 rayDirection{ x,y, 1.f };
 
+			//Ray we are casting from canera towards each pixel
 			Ray viewRay{ {0,0,0}, rayDirection.Normalized() };
 
+			//Color to write to color buffer (default = black)
 			ColorRGB finalColor{};
 
+			//HitRecord containing more info about potential hit
 			HitRecord closestHit{};
+			pScene->GetClosestHit(viewRay, closestHit);
 
-			Sphere testSphere{ {0.f,0.f,100.f}, 50.f,0 };
-
-			GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
+			/*Sphere testSphere{ {0.f,0.f,100.f}, 50.f,0 };
+			GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);*/
 
 			if (closestHit.didHit)
 			{
 				//if we hit something, set finalColor to material color, else keep black
 				//use HitRecord::materialindex to find corresponding material
-				//finalColor = materials[closestHit.materialIndex]->Shade();
-
-				//verify t-values
-				//remap t-value to [0,1] (should lay between ~[50,90])
-				const float scaled_t{ (closestHit.t - 50.f) / 40.f };
-				finalColor = { scaled_t, scaled_t, scaled_t };
+				finalColor = materials[closestHit.materialIndex]->Shade();
 			}
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
