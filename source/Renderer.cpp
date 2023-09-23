@@ -48,19 +48,13 @@ void Renderer::Render(Scene* pScene) const
 
 			//HitRecord containing more info about potential hit
 			HitRecord closestHit{};
-			//pScene->GetClosestHit(viewRay, closestHit);
-
-			Plane testPlane{ {0.f,-50.f,0.f},{0.f,1.f,0.f}, 0};
-			GeometryUtils::HitTest_Plane(testPlane, viewRay, closestHit);
+			pScene->GetClosestHit(viewRay, closestHit);
 
 			if (closestHit.didHit)
 			{
 				//if we hit something, set finalColor to material color, else keep black
 				//use HitRecord::materialindex to find corresponding material
-				//finalColor = materials[closestHit.materialIndex]->Shade();
-
-				const float scaled_t = closestHit.t / 500.f;
-				finalColor = { scaled_t , scaled_t , scaled_t };
+				finalColor = materials[closestHit.materialIndex]->Shade();
 			}
 
 			finalColor.MaxToOne();

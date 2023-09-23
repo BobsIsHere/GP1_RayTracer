@@ -10,16 +10,18 @@ namespace dae
 	{
 #pragma region Sphere HitTest
 		//SPHERE HIT-TESTS
+		inline float Squared(const float nr) { return nr * nr; }
+
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			if (ignoreHitRecord){ return false; }
 			
 			Vector3 vecToCenter{ sphere.origin - ray.origin };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			const float oppDistanceSquared{ powf(vecToCenter.Magnitude(), 2) - powf(dotProduct, 2) };
+			const float oppDistanceSquared{ Squared(vecToCenter.Magnitude()) - Squared(dotProduct)};
 
 			// If radius is smaller than adjacent side = no hit
-			const float adjacentSideSquared{ powf(sphere.radius, 2) - oppDistanceSquared };
+			const float adjacentSideSquared{ Squared(sphere.radius) - oppDistanceSquared };
 			if (adjacentSideSquared < 0)
 			{
 				return hitRecord.didHit = false;
@@ -47,13 +49,10 @@ namespace dae
 			const float dotProduct{ Vector3::Dot(vecPlaneToOrigin,plane.normal) };
 			const float dotNormals{ Vector3::Dot(ray.direction, plane.normal)};
 			const float t{ dotProduct / dotNormals };
-			//const float t{ Vector3::Dot(Vector3{ray.origin, plane.origin}, plane.normal) / Vector3::Dot(ray.direction, plane.normal) };
 			if (t < ray.max && t > ray.min)
 			{
 				hitRecord.materialIndex = plane.materialIndex;
 				hitRecord.t = t;
-				/*hitRecord.normal = plane.normal;
-				hitRecord.origin = ray.origin + t * ray.direction;*/
 				return hitRecord.didHit = true;
 			}
 			return hitRecord.didHit = false;
