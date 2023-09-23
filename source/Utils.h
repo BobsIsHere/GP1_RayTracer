@@ -14,7 +14,7 @@ namespace dae
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			if (ignoreHitRecord){ return false; }
+			//if (ignoreHitRecord){ return false; }
 			
 			Vector3 vecToCenter{ sphere.origin - ray.origin };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
@@ -43,7 +43,7 @@ namespace dae
 		{
 			//if t is within limits (min and max)
 			// -> intersection
-			if (ignoreHitRecord) { return false; }
+			//if (ignoreHitRecord) { return false; }
 			
 			Vector3 vecPlaneToOrigin{ ray.origin, plane.origin };
 			const float dotProduct{ Vector3::Dot(vecPlaneToOrigin,plane.normal) };
