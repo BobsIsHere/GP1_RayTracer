@@ -72,7 +72,14 @@ namespace dae
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-			
+			if (mouseState == mouseX)
+			{
+				Matrix::CreateRotationX(origin.x += speed * deltaTime);
+			}
+			if (mouseState == mouseY)
+			{
+				Matrix::CreateRotationY(origin.y += speed * deltaTime);
+			}
 		}
 	};
 }
