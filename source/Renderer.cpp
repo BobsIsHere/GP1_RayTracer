@@ -24,24 +24,27 @@ Renderer::Renderer(SDL_Window * pWindow) :
 void Renderer::Render(Scene* pScene) const
 {
 	Camera& camera = pScene->GetCamera();
+	
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
-	float ascpectRatio{ m_Width / static_cast<float>(m_Height) };
+	const float ascpectRatio{ m_Width / static_cast<float>(m_Height) };
+	const float fov{ tanf( camera.fovAngle / 2 ) };
 
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
 		{
-			float x{ (2.f * ((static_cast<float>(px) + 0.5f ) / static_cast<float>(m_Width)) - 1.f) * ascpectRatio };
-			float y{ (1.f - 2.f * ((static_cast<float>(py) + 0.5f) / static_cast<float>(m_Height)))};
+			float x{ (2.f * ((static_cast<float>(px) + 0.5f ) / static_cast<float>(m_Width)) - 1.f) * (ascpectRatio * fov) };
+			float y{ (1.f - 2.f * ((static_cast<float>(py) + 0.5f) / static_cast<float>(m_Height))) * fov};
 
 			Vector3 rayDirection{ x,y, 1.f };
-
+			//const Matrix cameraToWorld = camera.CalculateCameraToWorld();
+			rayDirection = camera.CalculateCameraToWorld().TransformVector(rayDirection);
 			rayDirection.Normalize();
 
 			//Ray we are casting from canera towards each pixel
-			Ray viewRay{ {0,0,0}, rayDirection };
+			Ray viewRay{ camera.origin, rayDirection };
 
 			//Color to write to color buffer (default = black)
 			ColorRGB finalColor{};

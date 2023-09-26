@@ -34,9 +34,12 @@ namespace dae
 
 		Matrix CalculateCameraToWorld()
 		{
-			//todo: W2
-			assert(false && "Not Implemented Yet");
-			return {};
+			right = Vector3::Cross(up, forward);
+			right = right.Normalized();
+			up = Vector3::Cross(forward, right);
+			up = up.Normalized();
+
+			return {right, up, forward, origin};
 		}
 
 		void Update(Timer* pTimer)

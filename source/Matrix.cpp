@@ -104,9 +104,12 @@ namespace dae {
 
 	Matrix Matrix::CreateTranslation(float x, float y, float z)
 	{
-		//todo W2
-		assert(false && "Not Implemented Yet");
-		return {};
+		Matrix out{};
+		out[0] = { 1.f, 0.f, 0.f, 0.f };
+		out[1] = { 0.f, 1.f, 0.f, 0.f };
+		out[2] = { 0.f, 0.f, 1.f, 0.f };
+		out[3] = { x,y,z,1.f };
+		return { out };
 	}
 
 	Matrix Matrix::CreateTranslation(const Vector3& t)
@@ -116,30 +119,37 @@ namespace dae {
 
 	Matrix Matrix::CreateRotationX(float pitch)
 	{
-		//todo W2
-		assert(false && "Not Implemented Yet");
-		return {};
+		Matrix out{};
+		out[0] = { 1.f,0.f,0.f,0.f };
+		out[1] = { 0.f, cos(pitch),sin(pitch),0.f};
+		out[2] = { 0.f,-sin(pitch),cos(pitch),0.f};
+		out[3] = { 0.f,0.f,0.f,1.f };
+		return { out };
 	}
 
 	Matrix Matrix::CreateRotationY(float yaw)
 	{
-		//todo W2
-		assert(false && "Not Implemented Yet");
-		return {};
+		Matrix out{};
+		out[0] = { cos(yaw), 0.f, -sin(yaw), 0.f };
+		out[1] = { 0.f, 1.f, 0.f, 0.f };
+		out[2] = { sin(yaw), 0.f, cos(yaw), 0.f };
+		out[3] = { 0.f,0.f,0.f,1.f };
+		return { out };
 	}
 
 	Matrix Matrix::CreateRotationZ(float roll)
 	{
-		//todo W2
-		assert(false && "Not Implemented Yet");
-		return {};
+		Matrix out{};
+		out[0] = { cos(roll), sin(roll), 0.f, 0.f };
+		out[1] = { -sin(roll), cos(roll), 0.f, 0.f };
+		out[2] = { 0.f, 0.f, 1.f, 0.f };
+		out[3] = { 0.f, 0.f, 0.f, 1.f };
+		return { out };
 	}
 
 	Matrix Matrix::CreateRotation(const Vector3& r)
 	{
-		//todo W2
-		assert(false && "Not Implemented Yet");
-		return {};
+		return { CreateRotationX(r[0] * r[1] * r[2] * r[3]) * CreateRotationY(r[0] * r[1] * r[2] * r[3]) * CreateRotationZ(r[0] * r[1] * r[2] * r[3]) };
 	}
 
 	Matrix Matrix::CreateRotation(float pitch, float yaw, float roll)
@@ -149,9 +159,12 @@ namespace dae {
 
 	Matrix Matrix::CreateScale(float sx, float sy, float sz)
 	{
-		//todo W2
-		assert(false && "Not Implemented Yet");
-		return {};
+		Matrix out{};
+		out[0] = { sx, 0.f, 0.f, 0.f };
+		out[1] = { 0.f, sy, 0.f, 0.f };
+		out[2] = { 0.f, 0.f, sz, 0.f };
+		out[3] = { 0.f, 0.f, 0.f, 1.f };
+		return { out };
 	}
 
 	Matrix Matrix::CreateScale(const Vector3& s)
