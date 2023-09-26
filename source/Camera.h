@@ -31,6 +31,8 @@ namespace dae
 
 		Matrix cameraToWorld{};
 
+		const float speed{ 10.f };
+
 
 		Matrix CalculateCameraToWorld()
 		{
@@ -39,7 +41,7 @@ namespace dae
 			up = Vector3::Cross(forward, right);
 			up = up.Normalized();
 
-			return {right, up, forward, origin};
+			return { right, up, forward, origin };
 		}
 
 		void Update(Timer* pTimer)
@@ -49,13 +51,28 @@ namespace dae
 			//Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
 
+			if (pKeyboardState[SDL_SCANCODE_W])
+			{
+				origin.z += speed * deltaTime;
+			}
+			if (pKeyboardState[SDL_SCANCODE_S])
+			{
+				origin.z -= speed * deltaTime;
+			}
+			if (pKeyboardState[SDL_SCANCODE_D])
+			{
+				origin.x += speed * deltaTime;
+			}
+			if (pKeyboardState[SDL_SCANCODE_A])
+			{
+				origin.x -= speed * deltaTime;
+			}
 
 			//Mouse Input
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-			//todo: W2
-			//assert(false && "Not Implemented Yet");
+			
 		}
 	};
 }

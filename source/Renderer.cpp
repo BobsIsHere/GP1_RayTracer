@@ -39,7 +39,6 @@ void Renderer::Render(Scene* pScene) const
 			float y{ (1.f - 2.f * ((static_cast<float>(py) + 0.5f) / static_cast<float>(m_Height))) * fov};
 
 			Vector3 rayDirection{ x,y, 1.f };
-			//const Matrix cameraToWorld = camera.CalculateCameraToWorld();
 			rayDirection = camera.CalculateCameraToWorld().TransformVector(rayDirection);
 			rayDirection.Normalize();
 
