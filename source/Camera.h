@@ -72,13 +72,34 @@ namespace dae
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-			if (mouseState == mouseX)
+			/*if (mouseState == mouseX)
 			{
 				Matrix::CreateRotationX(origin.x += speed * deltaTime);
 			}
 			if (mouseState == mouseY)
 			{
 				Matrix::CreateRotationY(origin.y += speed * deltaTime);
+			}*/
+
+			if ((mouseState & SDL_BUTTON_RMASK) != 0)
+			{
+				if (!(mouseState & SDL_BUTTON_LMASK) != 0)
+				{
+
+					// Right mouse button is pressed
+					totalYaw += mouseX;
+					totalPitch += mouseY;
+
+					// Create rotation matrices for pitch and yaw
+					Matrix rotationX = Matrix::CreateRotationX(totalPitch * TO_RADIANS);
+					Matrix rotationY = Matrix::CreateRotationY(totalYaw * TO_RADIANS);
+
+					// Combine the two rotations
+					Matrix rotation = rotationX * rotationY;
+
+					// Update the camera's forward vector based on the new orientation
+					forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
+				}
 			}
 		}
 	};

@@ -42,7 +42,7 @@ void Renderer::Render(Scene* pScene) const
 			rayDirection = camera.CalculateCameraToWorld().TransformVector(rayDirection);
 			rayDirection.Normalize();
 
-			//Ray we are casting from canera towards each pixel
+			//Ray we are casting from camera towards each pixel
 			Ray viewRay{ camera.origin, rayDirection };
 
 			//Color to write to color buffer (default = black)
@@ -57,6 +57,23 @@ void Renderer::Render(Scene* pScene) const
 				//if we hit something, set finalColor to material color, else keep black
 				//use HitRecord::materialindex to find corresponding material
 				finalColor = materials[closestHit.materialIndex]->Shade();
+
+				const float minLengthLight{ 0.0001f };
+				const float shadow{ 0.5f };
+
+				const Vector3 movedHitOrigin{ closestHit.origin + closestHit.normal * minLengthLight };
+
+				for (int idx{}; idx < lights.size(); ++idx)
+				{
+					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], movedHitOrigin)};
+					const float distance{ directionLight.Normalize() };
+					const Ray lightRay{ movedHitOrigin, directionLight, minLengthLight, distance };
+
+					if (pScene->DoesHit(lightRay))
+					{
+						finalColor *= shadow;
+					}
+				}
 			}
 
 			finalColor.MaxToOne();
