@@ -36,12 +36,14 @@ namespace dae
 
 		Matrix CalculateCameraToWorld()
 		{
-			right = Vector3::Cross(up, forward);
+			right = Vector3::Cross(Vector3::UnitY, forward);
 			right = right.Normalized();
 			up = Vector3::Cross(forward, right);
 			up = up.Normalized();
 
-			return { right, up, forward, origin };
+			//WHY?
+			cameraToWorld = { Vector4{right,0}, Vector4{up,0}, Vector4{forward,0}, Vector4{origin,1} };
+			return cameraToWorld;
 		}
 
 		void Update(Timer* pTimer)

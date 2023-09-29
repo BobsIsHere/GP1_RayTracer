@@ -18,15 +18,30 @@ namespace dae
 			
 			Vector3 vecToCenter{ sphere.origin - ray.origin };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			const float oppDistanceSquared{ Squared(vecToCenter.Magnitude()) - Squared(dotProduct)};
+			const float oppDistance{ Squared(vecToCenter.Magnitude()) - Squared(dotProduct)};
+
+			//differnce between the hit and opposite distance
+			const float adjacentSideSquared{ Squared(sphere.radius) - oppDistance };
+			//distance from camera to the hit
+			const float distanceCameraToHit{ oppDistance - Squared(adjacentSideSquared) };
 
 			// If radius is smaller than adjacent side = no hit
-			const float adjacentSideSquared{ Squared(sphere.radius) - oppDistanceSquared };
 			if (adjacentSideSquared < 0)
 			{
 				return hitRecord.didHit = false;
 			}
+			/*if (distanceCameraToHit <= ray.min || distanceCameraToHit >= ray.max)
+			{
+				return hitRecord.didHit = false;
+			}*/
+			const Vector3 hitPos{ ray.direction * distanceCameraToHit + ray.origin };
+
 			hitRecord.t = dotProduct - sqrt(adjacentSideSquared);
+
+			//made a difference
+			hitRecord.origin = hitPos;
+			hitRecord.normal = (hitPos - sphere.origin).Normalized();
+
 			hitRecord.materialIndex = sphere.materialIndex;
 			return hitRecord.didHit = true;
 		}
@@ -55,6 +70,7 @@ namespace dae
 				hitRecord.t = t;
 				return hitRecord.didHit = true;
 			}
+
 			return hitRecord.didHit = false;
 		}
 
