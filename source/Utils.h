@@ -18,12 +18,12 @@ namespace dae
 			
 			Vector3 vecToCenter{ sphere.origin - ray.origin };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			const float oppDistance{ Squared(vecToCenter.Magnitude()) - Squared(dotProduct)};
+			const float oppDistanceSquared{ vecToCenter.SqrMagnitude() - Squared(dotProduct)};
 
 			//differnce between the hit and opposite distance
-			const float adjacentSideSquared{ Squared(sphere.radius) - oppDistance };
+			const float adjacentSideSquared{ Squared(sphere.radius) - oppDistanceSquared };
 			//distance from camera to the hit
-			const float distanceCameraToHit{ Squared(oppDistance) - adjacentSideSquared };
+			const float distanceCameraToHit{ Squared(oppDistanceSquared) - adjacentSideSquared };
 
 			// If radius is smaller than adjacent side = no hit
 			if (adjacentSideSquared < 0)
@@ -40,24 +40,6 @@ namespace dae
 
 			hitRecord.materialIndex = sphere.materialIndex;
 			return hitRecord.didHit = true;
-
-			//First Version
-			//Vector3 vecToCenter{ sphere.origin - ray.origin };
-			//const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			//const float oppDistance{ Squared(vecToCenter.Magnitude()) - Squared(dotProduct) };
-
-			//differnce between the hit and opposite distance
-			//const float adjacentSideSquared{ Squared(sphere.radius) - oppDistance };
-
-			// If radius is smaller than adjacent side = no hit
-			/*if (adjacentSideSquared < 0)
-			{
-				return hitRecord.didHit = false;
-			}*/
-			
-			//hitRecord.t = dotProduct - sqrt(adjacentSideSquared);
-			//hitRecord.materialIndex = sphere.materialIndex;
-			//return hitRecord.didHit = true;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
@@ -81,7 +63,9 @@ namespace dae
 
 			if (t < ray.max && t > ray.min)
 			{
-				//hitRecord.origin = 
+				//from start of ray in direction of ray, move forward by distance to hitpoint (= t)
+				hitRecord.origin = ray.origin + t * ray.direction;
+				hitRecord.normal = plane.normal;
 				hitRecord.t = t;
 				hitRecord.materialIndex = plane.materialIndex;
 				return hitRecord.didHit = true;
