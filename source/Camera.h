@@ -41,7 +41,7 @@ namespace dae
 			up = Vector3::Cross(forward, right);
 			up = up.Normalized();
 
-			//WHY?
+			//Rotation Matrix (Row based)
 			cameraToWorld = { Vector4{right,0}, Vector4{up,0}, Vector4{forward,0}, Vector4{origin,1} };
 			return cameraToWorld;
 		}
@@ -74,20 +74,10 @@ namespace dae
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-			/*if (mouseState == mouseX)
-			{
-				Matrix::CreateRotationX(origin.x += speed * deltaTime);
-			}
-			if (mouseState == mouseY)
-			{
-				Matrix::CreateRotationY(origin.y += speed * deltaTime);
-			}*/
-
 			if ((mouseState & SDL_BUTTON_RMASK) != 0)
 			{
 				if (!(mouseState & SDL_BUTTON_LMASK) != 0)
 				{
-
 					// Right mouse button is pressed
 					totalYaw += mouseX;
 					totalPitch += mouseY;
