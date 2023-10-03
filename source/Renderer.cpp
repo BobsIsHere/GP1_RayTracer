@@ -66,13 +66,17 @@ void Renderer::Render(Scene* pScene) const
 				for (int idx{}; idx < lights.size(); ++idx)
 				{
 					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], movedHitOrigin)};
-					const float distance{ directionLight.Normalize() };
-					const Ray lightRay{ movedHitOrigin, directionLight, minLengthLight, distance };
+					const float distance{ directionLight.Normalize() - minLengthLight };
+					const Ray lightRay{ movedHitOrigin + minLengthLight * closestHit.normal, directionLight, minLengthLight, distance };
 
 					if (pScene->DoesHit(lightRay))
 					{
 						finalColor *= shadow;
 					}
+
+					float observedArea{ Vector3::Dot(directionLight, closestHit.normal) / directionLight.Magnitude() };
+					if (observedArea < 0 ) { continue; }
+					
 				}
 			}
 
@@ -85,6 +89,12 @@ void Renderer::Render(Scene* pScene) const
 		}
 	}
 
+	const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
+	/*if (pKeyboardState[SDL_SCANCODE_F2])
+	{
+		Renderer::ToggleShadows();
+	}*/
+
 	//@END
 	//Update SDL Surface
 	SDL_UpdateWindowSurface(m_pWindow);
@@ -93,4 +103,9 @@ void Renderer::Render(Scene* pScene) const
 bool Renderer::SaveBufferToImage() const
 {
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
+}
+
+void dae::Renderer::CycleLightingMode()
+{
+	const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
 }

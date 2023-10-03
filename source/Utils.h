@@ -15,29 +15,29 @@ namespace dae
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			//if (ignoreHitRecord){ return false; }
-			
-			Vector3 vecToCenter{ sphere.origin - ray.origin };
+
+			const Vector3 vecToCenter{ sphere.origin - ray.origin };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			const float oppDistanceSquared{ vecToCenter.SqrMagnitude() - Squared(dotProduct)};
 
-			//differnce between the hit and opposite distance
-			const float adjacentSideSquared{ Squared(sphere.radius) - oppDistanceSquared };
-			//distance from camera to the hit
-			const float distanceCameraToHit{ Squared(oppDistanceSquared) - adjacentSideSquared };
-
-			// If radius is smaller than adjacent side = no hit
-			if (adjacentSideSquared < 0)
+			const float discriminant{ sphere.radius * sphere.radius - Vector3::Dot(vecToCenter, vecToCenter) + dotProduct * dotProduct };
+			if (discriminant <= 0)
 			{
-				return hitRecord.didHit = false;
+				return false;
 			}
-			const Vector3 hitPos{ ray.direction * distanceCameraToHit + ray.origin };
 
-			hitRecord.t = dotProduct - sqrt(adjacentSideSquared);
+			const float tHC{ sqrtf(discriminant) };
+			const float t0{ dotProduct - tHC };
+			const float t1{ dotProduct + tHC };
+			if (t0 <= ray.min || t1 >= ray.max)
+			{
+				return false;
+			}
+
+			hitRecord.t = t0;
 			//location of intersection
-			hitRecord.origin = hitPos;
+			hitRecord.origin = ray.origin + t0 * ray.direction;
 			//normal of origin
-			hitRecord.normal = (hitPos - sphere.origin).Normalized();
-
+			hitRecord.normal = (hitRecord.origin - sphere.origin).Normalized();
 			hitRecord.materialIndex = sphere.materialIndex;
 			return hitRecord.didHit = true;
 		}
@@ -116,7 +116,15 @@ namespace dae
 		//Direction from target to light
 		inline Vector3 GetDirectionToLight(const Light& light, const Vector3 origin)
 		{
-			return (light.origin - origin);
+			switch (light.type)
+			{
+			case LightType::Point :
+				return (light.origin - origin);
+				break;
+			case LightType::Directional :
+				return (-light.direction);
+				break;
+			}
 		}
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
