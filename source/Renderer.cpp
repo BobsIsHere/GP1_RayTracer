@@ -72,10 +72,17 @@ void Renderer::Render(Scene* pScene) const
 					if (pScene->DoesHit(lightRay))
 					{
 						if (m_ShadowsEnabled){ finalColor *= shadow; }
-					}
 
-					float observedArea{ Vector3::Dot(directionLight, closestHit.normal) / directionLight.Magnitude() };
-					if (observedArea < 0 ) { continue; }
+						float observedArea{ Vector3::Dot(directionLight, closestHit.normal) / directionLight.Magnitude() };
+						if (observedArea < 0 ) { continue; }
+						if (m_ShadowsEnabled) { continue; }
+
+						dae::LightUtils::GetRadiance(lights[idx], movedHitOrigin);
+					}
+					else
+					{
+						continue;
+					}
 				}
 			}
 
