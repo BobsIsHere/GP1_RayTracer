@@ -5,6 +5,7 @@
 
 #include "Math.h"
 #include "Timer.h"
+#include "Renderer.h"
 
 namespace dae
 {
@@ -57,15 +58,15 @@ namespace dae
 			{
 				origin.z += speed * deltaTime;
 			}
-			if (pKeyboardState[SDL_SCANCODE_S])
+			else if (pKeyboardState[SDL_SCANCODE_S])
 			{
 				origin.z -= speed * deltaTime;
 			}
-			if (pKeyboardState[SDL_SCANCODE_D])
+			else if (pKeyboardState[SDL_SCANCODE_D])
 			{
 				origin.x += speed * deltaTime;
 			}
-			if (pKeyboardState[SDL_SCANCODE_A])
+			else if (pKeyboardState[SDL_SCANCODE_A])
 			{
 				origin.x -= speed * deltaTime;
 			}

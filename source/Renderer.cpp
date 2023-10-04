@@ -71,12 +71,11 @@ void Renderer::Render(Scene* pScene) const
 
 					if (pScene->DoesHit(lightRay))
 					{
-						finalColor *= shadow;
+						if (m_ShadowsEnabled){ finalColor *= shadow; }
 					}
 
 					float observedArea{ Vector3::Dot(directionLight, closestHit.normal) / directionLight.Magnitude() };
 					if (observedArea < 0 ) { continue; }
-					
 				}
 			}
 
@@ -90,10 +89,6 @@ void Renderer::Render(Scene* pScene) const
 	}
 
 	const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
-	/*if (pKeyboardState[SDL_SCANCODE_F2])
-	{
-		Renderer::ToggleShadows();
-	}*/
 
 	//@END
 	//Update SDL Surface
@@ -107,5 +102,11 @@ bool Renderer::SaveBufferToImage() const
 
 void dae::Renderer::CycleLightingMode()
 {
-	const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
+	int temp{ int(m_CurrentLightingMode) };
+	++temp;
+	
+	if (temp > int(LightingMode::Radiance))
+	{
+		temp = 0;
+	}
 }
