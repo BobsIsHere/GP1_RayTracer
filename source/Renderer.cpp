@@ -36,7 +36,7 @@ void Renderer::Render(Scene* pScene) const
 		for (int py{}; py < m_Height; ++py)
 		{
 			float x{ (2.f * ((static_cast<float>(px) + 0.5f ) / static_cast<float>(m_Width)) - 1.f) * (ascpectRatio * fov) };
-			float y{ (1.f - 2.f * ((static_cast<float>(py) + 0.5f) / static_cast<float>(m_Height))) * fov};
+			float y{ (1.f - (2.f * ((static_cast<float>(py) + 0.5f) / static_cast<float>(m_Height)))) * fov };
 
 			Vector3 rayDirection{ x,y, 1.f };
 			rayDirection = camera.CalculateCameraToWorld().TransformVector(rayDirection);
@@ -65,23 +65,39 @@ void Renderer::Render(Scene* pScene) const
 
 				for (int idx{}; idx < lights.size(); ++idx)
 				{
-					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], movedHitOrigin)};
+					//variables
+					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], closestHit.origin)};
 					const float distance{ directionLight.Normalize() - minLengthLight };
-					const Ray lightRay{ movedHitOrigin + minLengthLight * closestHit.normal, directionLight, minLengthLight, distance };
+					float observedArea{ Vector3::Dot(closestHit.normal, directionLight) };
+					ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, -rayDirection) };
 
-					if (pScene->DoesHit(lightRay))
+					if (m_ShadowsEnabled)
 					{
-						if (m_ShadowsEnabled){ finalColor *= shadow; }
-
-						float observedArea{ Vector3::Dot(directionLight, closestHit.normal) / directionLight.Magnitude() };
-						if (observedArea < 0 ) { continue; }
-						if (m_ShadowsEnabled) { continue; }
-
-						dae::LightUtils::GetRadiance(lights[idx], movedHitOrigin);
+						const Ray lightRay{ movedHitOrigin, directionLight, minLengthLight, distance };
+						if (pScene->DoesHit(lightRay))
+						{
+							continue;
+						}
 					}
-					else
+					if (observedArea <= 0)
 					{
 						continue;
+					}
+
+					switch (m_CurrentLightingMode)
+					{
+					case dae::Renderer::LightingMode::ObservedArea:
+						finalColor += ColorRGB{ 1.f, 1.f, 1.f } * observedArea;
+						break;
+					case dae::Renderer::LightingMode::Radiance:
+						finalColor += LightUtils::GetRadiance(lights[idx], closestHit.origin);
+						break;
+					case dae::Renderer::LightingMode::BRDF:
+						finalColor += brdfRGB;
+						break;
+					case dae::Renderer::LightingMode::Combined:
+						finalColor += LightUtils::GetRadiance(lights[idx], closestHit.origin) * brdfRGB * observedArea;
+						break;
 					}
 				}
 			}

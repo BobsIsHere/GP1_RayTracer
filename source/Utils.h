@@ -61,12 +61,12 @@ namespace dae
 			const float dotNormals{ Vector3::Dot(ray.direction, plane.normal)};
 			const float t{ dotProduct / dotNormals };
 
-			if (t < ray.max && t > ray.min)
+			if (t >= ray.min && t <= ray.max)
 			{
+				hitRecord.t = t;
 				//from start of ray in direction of ray, move forward by distance to hitpoint (= t)
 				hitRecord.origin = ray.origin + t * ray.direction;
 				hitRecord.normal = plane.normal;
-				hitRecord.t = t;
 				hitRecord.materialIndex = plane.materialIndex;
 				return hitRecord.didHit = true;
 			}
@@ -132,7 +132,7 @@ namespace dae
 			switch (light.type)
 			{
 			case LightType::Point :
-				return light.color * (light.intensity / Square(light.origin.Magnitude() - target.Magnitude()));
+				return light.color * (light.intensity / Square((light.origin - target).Magnitude()));
 				break;
 			case LightType::Directional :
 				return light.color * light.intensity;
