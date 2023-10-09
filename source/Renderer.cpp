@@ -9,6 +9,7 @@
 #include "Material.h"
 #include "Scene.h"
 #include "Utils.h"
+#include <iostream>
 
 using namespace dae;
 
@@ -59,17 +60,15 @@ void Renderer::Render(Scene* pScene) const
 				finalColor = materials[closestHit.materialIndex]->Shade();
 
 				const float minLengthLight{ 0.0001f };
-				const float shadow{ 0.5f };
-
 				const Vector3 movedHitOrigin{ closestHit.origin + closestHit.normal * minLengthLight };
 
 				for (int idx{}; idx < lights.size(); ++idx)
 				{
 					//variables
-					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], closestHit.origin)};
-					const float distance{ directionLight.Normalize() - minLengthLight };
+					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], movedHitOrigin)};
+					const float distance{ directionLight.Normalize() /*- minLengthLight*/ };
 					float observedArea{ Vector3::Dot(closestHit.normal, directionLight) };
-					ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, -rayDirection) };
+					ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, rayDirection) };
 
 					if (m_ShadowsEnabled)
 					{
@@ -125,11 +124,29 @@ bool Renderer::SaveBufferToImage() const
 
 void dae::Renderer::CycleLightingMode()
 {
-	int temp{ int(m_CurrentLightingMode) };
-	++temp;
+	int temp{ static_cast<int>(m_CurrentLightingMode) };
+	/*++temp;
 	
 	if (temp > int(LightingMode::Radiance))
 	{
 		temp = 0;
+	}*/
+
+	m_CurrentLightingMode = static_cast<LightingMode>((temp) % 4);
+
+	switch (m_CurrentLightingMode)
+	{
+	case dae::Renderer::LightingMode::ObservedArea:
+		std::cout << "observedArea";
+		break;
+	case dae::Renderer::LightingMode::Radiance:
+		std::cout << "Radiance";
+		break;
+	case dae::Renderer::LightingMode::BRDF:
+		std::cout << "BRDF";
+		break;
+	case dae::Renderer::LightingMode::Combined:
+		std::cout << "Combined";
+		break;
 	}
 }

@@ -19,7 +19,7 @@ namespace dae
 
 		static ColorRGB Lambert(const ColorRGB& kd, const ColorRGB& cd)
 		{
-			ColorRGB rho{ cd * kd };
+			ColorRGB rho{ cd * kd.r };
 			return rho / M_PI;
 		}
 
@@ -34,8 +34,11 @@ namespace dae
 		 */
 		static ColorRGB Phong(float ks, float exp, const Vector3& l, const Vector3& v, const Vector3& n)
 		{
-			//todo: W3
-			return {};
+			const Vector3 reflect{ l - (2 * (Vector3::Dot(n, l) * n)) };
+			const float angle{ Vector3::Dot(reflect, v) };
+			const float reflection{ ks * std::powf(angle, exp) };
+			
+			return ColorRGB{ reflection, reflection, reflection };
 		}
 
 		/**
