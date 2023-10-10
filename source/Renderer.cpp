@@ -55,10 +55,6 @@ void Renderer::Render(Scene* pScene) const
 
 			if (closestHit.didHit)
 			{
-				//if we hit something, set finalColor to material color, else keep black
-				//use HitRecord::materialindex to find corresponding material
-				finalColor = materials[closestHit.materialIndex]->Shade();
-
 				const float minLengthLight{ 0.0001f };
 				const Vector3 movedHitOrigin{ closestHit.origin + closestHit.normal * minLengthLight };
 
@@ -67,8 +63,8 @@ void Renderer::Render(Scene* pScene) const
 					//variables
 					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], movedHitOrigin)};
 					const float distance{ directionLight.Normalize() /*- minLengthLight*/ };
-					float observedArea{ Vector3::Dot(closestHit.normal, directionLight) };
-					ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, rayDirection) };
+					const float observedArea{ Vector3::Dot(closestHit.normal, directionLight) };
+					ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, -rayDirection) };
 
 					if (m_ShadowsEnabled)
 					{
@@ -125,28 +121,5 @@ bool Renderer::SaveBufferToImage() const
 void dae::Renderer::CycleLightingMode()
 {
 	int temp{ static_cast<int>(m_CurrentLightingMode) };
-	/*++temp;
-	
-	if (temp > int(LightingMode::Radiance))
-	{
-		temp = 0;
-	}*/
-
-	m_CurrentLightingMode = static_cast<LightingMode>((temp) % 4);
-
-	switch (m_CurrentLightingMode)
-	{
-	case dae::Renderer::LightingMode::ObservedArea:
-		std::cout << "observedArea";
-		break;
-	case dae::Renderer::LightingMode::Radiance:
-		std::cout << "Radiance";
-		break;
-	case dae::Renderer::LightingMode::BRDF:
-		std::cout << "BRDF";
-		break;
-	case dae::Renderer::LightingMode::Combined:
-		std::cout << "Combined";
-		break;
-	}
+	m_CurrentLightingMode = static_cast<LightingMode>((++temp) % 4);
 }

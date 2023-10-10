@@ -14,13 +14,13 @@ namespace dae
 		static ColorRGB Lambert(float kd, const ColorRGB& cd)
 		{
 			ColorRGB rho{ cd * kd };
-			return rho / M_PI;
+			return rho / dae::PI;
 		}
 
 		static ColorRGB Lambert(const ColorRGB& kd, const ColorRGB& cd)
 		{
-			ColorRGB rho{ cd * kd.r };
-			return rho / M_PI;
+			ColorRGB rho{ cd * kd };
+			return rho / dae::PI;
 		}
 
 		/**
@@ -34,8 +34,8 @@ namespace dae
 		 */
 		static ColorRGB Phong(float ks, float exp, const Vector3& l, const Vector3& v, const Vector3& n)
 		{
-			const Vector3 reflect{ l - (2 * (Vector3::Dot(n, l) * n)) };
-			const float angle{ Vector3::Dot(reflect, v) };
+			const Vector3 reflect{ l - (2 * (Vector3::Dot(n, l)) * n) };
+			const float angle{ std::max (0.f ,Vector3::Dot(reflect, v)) };
 			const float reflection{ ks * std::powf(angle, exp) };
 			
 			return ColorRGB{ reflection, reflection, reflection };
@@ -50,8 +50,9 @@ namespace dae
 		 */
 		static ColorRGB FresnelFunction_Schlick(const Vector3& h, const Vector3& v, const ColorRGB& f0)
 		{
-			//todo: W3
-			return {};
+			//float schlick{ 1 - Vector3::Dot(h, v) };
+
+			return f0 + (ColorRGB{1.f,1.f,1.f} - f0) * powf((1.f - Vector3::Dot(h, v)), 5.f);
 		}
 
 		/**
@@ -63,8 +64,15 @@ namespace dae
 		 */
 		static float NormalDistribution_GGX(const Vector3& n, const Vector3& h, float roughness)
 		{
-			//todo: W3
-			return {};
+			/*const float roughnessSquared{ roughness * roughness };
+			const float denominator{ (Vector3::Dot(n,h) * Vector3::Dot(n,h)) * (roughnessSquared - 1) + 1 };
+
+			return (roughnessSquared / M_PI * (denominator * denominator)) - roughnessSquared;*/
+			const float a{ Square(roughness) };
+			const float dpSquared{ Square(Vector3::Dot(n,h)) };
+			const float denominator{ dae::PI * Square(dpSquared * (a - 1.f) + 1.f) };
+
+			return a / denominator;
 		}
 
 
@@ -77,8 +85,18 @@ namespace dae
 		 */
 		static float GeometryFunction_SchlickGGX(const Vector3& n, const Vector3& v, float roughness)
 		{
-			//todo: W3
-			return {};
+			/*const float dp{ Vector3::Dot(n,v) };
+			const float roughnessSquared{ roughness * roughness };
+
+			const float directLighting{ (roughnessSquared + 1) * 2 / 8 };
+			const float UE4Formula{ dp / dp * (1 - roughnessSquared) + roughnessSquared };
+
+			return directLighting + UE4Formula - roughnessSquared;*/
+
+			const float dp{Vector3::Dot(n,v)};
+			const float k{ Square(roughness + 1.f) / 8.f };
+
+			return dp / (dp * (1.f - k) + k);
 		}
 
 		/**
@@ -91,9 +109,10 @@ namespace dae
 		 */
 		static float GeometryFunction_Smith(const Vector3& n, const Vector3& v, const Vector3& l, float roughness)
 		{
-			//todo: W3
-			return {};
-		}
+			const float smith1{ GeometryFunction_SchlickGGX(n, v, roughness) };
+			const float smith2{ GeometryFunction_SchlickGGX(n, l, roughness) };
 
+			return smith2 * smith1;
+		}
 	}
 }
