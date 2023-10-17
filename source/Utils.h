@@ -84,9 +84,55 @@ namespace dae
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
-			return false;
+			//Normal VS Ray-Direction Check (Perpendicular?)
+			Vector3 a{ triangle.v1 - triangle.v0 };
+			Vector3 b{ triangle.v2 - triangle.v0 };
+			Vector3 n{ Vector3::Cross(a,b) };
+			float dotNormalRay{ Vector3::Dot(n,ray.direction) };
+
+			if (AreEqual(dotNormalRay, 0))
+			{
+				return false;
+			}
+			//Cull Mode Check
+			if (dotNormalRay > 0 and triangle.cullMode == TriangleCullMode::BackFaceCulling || 
+				dotNormalRay < 0 and triangle.cullMode == TriangleCullMode::FrontFaceCulling)
+			{
+				return false;
+			}
+			//Ray-Plane test (plane defined by Triangle) + T range check
+			const Vector3 L{ triangle.v0 - ray.origin };
+
+			const float dotLToNormal{ Vector3::Dot(L,n) };
+			const float dotRayToNormal{ Vector3::Dot(ray.direction,n) };
+			const float t{ dotLToNormal / dotRayToNormal };
+
+			if (t < ray.min || t > ray.max)
+			{
+				return false;
+			}
+
+			Vector3 P{ ray.origin + ray.direction * t};
+			//Check if hitpoint is inside the Triangle
+			std::vector<Vector3> vertices{ triangle.v0,  triangle.v1 , triangle.v2 };
+
+			for (int verticeIdx = 0; verticeIdx < 2; ++verticeIdx)
+			{
+				Vector3 e{ vertices[(verticeIdx + 1) % 3] - vertices[verticeIdx] };
+				Vector3 p{ P - vertices[verticeIdx] };
+				Vector3 crossProduct{ Vector3::Cross(e,p) };
+				
+				if (Vector3::Dot(crossProduct,n) < 0)
+				{
+					return false;
+				}
+			}
+			//Fill-in HitRecord (if required)
+			hitRecord.t = t;
+			hitRecord.origin = P;
+			hitRecord.normal = triangle.normal;
+			hitRecord.materialIndex = triangle.materialIndex;
+			return hitRecord.didHit = true;
 		}
 
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)

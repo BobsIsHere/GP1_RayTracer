@@ -107,9 +107,8 @@ namespace dae
 		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
 		{
 			//variables
-			Vector3 halfVector{ (v + l) / (v + l).Magnitude() };
-			//why squared?
 			const float roughnessSquared{ m_Roughness * m_Roughness };
+			const Vector3 halfVector{ (v + l).Normalized() };
 			ColorRGB f0{};
 			
 			//base reflectivity of the surface
@@ -126,18 +125,11 @@ namespace dae
 			float denominator{ 4 * (Vector3::Dot(v, hitRecord.normal) * Vector3::Dot(l, hitRecord.normal)) };
 			ColorRGB specular{ DFG / denominator };
 
-			//calculate diffuse
-			//ColorRGB kd{ ColorRGB{1.f, 1.f, 1.f} - f};
-			//if (m_Metalness == 0.f){ kd = ColorRGB{ 0.f, 0.f, 0.f }; }
-			//ColorRGB diffuse{ BRDF::Lambert(kd, m_Albedo) };
-
-			//if (m_Metalness <= 0.f) diffuse = {};
 			if (m_Metalness <= 0.f)
 				specular += BRDF::Lambert(ColorRGB(1.f, 1.f, 1.f) - f, m_Albedo);
 
 			//return
 			return specular;
-			//return diffuse + specular;
 		}
 
 	private:

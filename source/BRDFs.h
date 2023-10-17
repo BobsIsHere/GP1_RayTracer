@@ -50,9 +50,9 @@ namespace dae
 		 */
 		static ColorRGB FresnelFunction_Schlick(const Vector3& h, const Vector3& v, const ColorRGB& f0)
 		{
-			//float schlick{ 1 - Vector3::Dot(h, v) };
+			const float schlick{ 1.f - Vector3::Dot(h, v) };
 
-			return f0 + (ColorRGB{1.f,1.f,1.f} - f0) * powf((1.f - Vector3::Dot(h, v)), 5.f);
+			return f0 + (ColorRGB{ 1.f,1.f,1.f } - f0) * (schlick * schlick * schlick * schlick * schlick);
 		}
 
 		/**
@@ -64,10 +64,6 @@ namespace dae
 		 */
 		static float NormalDistribution_GGX(const Vector3& n, const Vector3& h, float roughness)
 		{
-			/*const float roughnessSquared{ roughness * roughness };
-			const float denominator{ (Vector3::Dot(n,h) * Vector3::Dot(n,h)) * (roughnessSquared - 1) + 1 };
-
-			return (roughnessSquared / M_PI * (denominator * denominator)) - roughnessSquared;*/
 			const float a{ Square(roughness) };
 			const float dpSquared{ Square(Vector3::Dot(n,h)) };
 			const float denominator{ dae::PI * Square(dpSquared * (a - 1.f) + 1.f) };
@@ -85,14 +81,6 @@ namespace dae
 		 */
 		static float GeometryFunction_SchlickGGX(const Vector3& n, const Vector3& v, float roughness)
 		{
-			/*const float dp{ Vector3::Dot(n,v) };
-			const float roughnessSquared{ roughness * roughness };
-
-			const float directLighting{ (roughnessSquared + 1) * 2 / 8 };
-			const float UE4Formula{ dp / dp * (1 - roughnessSquared) + roughnessSquared };
-
-			return directLighting + UE4Formula - roughnessSquared;*/
-
 			const float dp{Vector3::Dot(n,v)};
 			const float k{ Square(roughness + 1.f) / 8.f };
 

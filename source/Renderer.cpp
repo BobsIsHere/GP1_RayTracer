@@ -62,7 +62,7 @@ void Renderer::Render(Scene* pScene) const
 				{
 					//variables
 					Vector3 directionLight{ LightUtils::GetDirectionToLight(lights[idx], movedHitOrigin)};
-					const float distance{ directionLight.Normalize() /*- minLengthLight*/ };
+					const float distance{ directionLight.Normalize() - minLengthLight };
 					const float observedArea{ Vector3::Dot(closestHit.normal, directionLight) };
 					ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, -rayDirection) };
 

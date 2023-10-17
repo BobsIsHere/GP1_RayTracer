@@ -123,12 +123,17 @@ namespace dae
 
 		void CalculateNormals()
 		{
-			assert(false && "No Implemented Yet!");
+			for (int idx = 0; idx < indices.size(); idx+3)
+			{
+				const Vector3 a{ positions[indices[idx + 1]] - positions[indices[idx]] };
+				const Vector3 b{ positions[indices[idx + 2]] - positions[indices[idx + 1]] };
+
+				normals.push_back(Vector3::Cross(a, b));
+			}
 		}
 
 		void UpdateTransforms()
 		{
-			assert(false && "No Implemented Yet!");
 			//Calculate Final Transform 
 			//const auto finalTransform = ...
 
