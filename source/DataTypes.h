@@ -123,7 +123,7 @@ namespace dae
 
 		void CalculateNormals()
 		{
-			for (int idx = 0; idx < indices.size(); idx+3)
+			for (int idx = 0; idx < indices.size(); idx += 3)
 			{
 				const Vector3 a{ positions[indices[idx + 1]] - positions[indices[idx]] };
 				const Vector3 b{ positions[indices[idx + 2]] - positions[indices[idx + 1]] };
@@ -136,12 +136,30 @@ namespace dae
 		{
 			//Calculate Final Transform 
 			//const auto finalTransform = ...
+			const Matrix finalTransform{ scaleTransform * rotationTransform * translationTransform };
+
+			//Clear normals and positions, reserving memory for vectors
+			transformedNormals.clear();
+			transformedNormals.reserve(normals.size());
+
+			transformedPositions.clear();
+			transformedPositions.reserve(positions.size());
 
 			//Transform Positions (positions > transformedPositions)
-			//...
+			//loops over position, applies finalTransform to each and stores transformed point in vector
+			for (int positionIdx = 0; positionIdx < positions.size(); ++positionIdx)
+			{
+				Vector3 result{ finalTransform.TransformPoint(positions[positionIdx]) };
+				transformedPositions.emplace_back(result);
+			}
 
 			//Transform Normals (normals > transformedNormals)
-			//...
+			//loops over normals, applies finalTransform to each and stores transformed normal in vector
+			for (int normalIdx = 0; normalIdx < normals.size(); ++normalIdx)
+			{
+				Vector3 result{ finalTransform.TransformVector(normals[normalIdx]) };
+				transformedNormals.emplace_back(result);
+			}
 		}
 	};
 #pragma endregion

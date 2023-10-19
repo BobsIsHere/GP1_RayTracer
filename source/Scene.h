@@ -52,7 +52,7 @@ namespace dae
 		std::vector<Material*> m_Materials{};
 
 		//temp (Individual Triangle Testing)
-		std::vector<Triangle> m_Triangles;
+		//std::vector<Triangle> m_Triangles;
 
 		Camera m_Camera{};
 
@@ -127,5 +127,9 @@ namespace dae
 		Scene_W4& operator=(Scene_W4&&) noexcept = delete;
 
 		void Initialize() override;
+		void Update(Timer* pTimer) override;
+
+	private:
+		TriangleMesh* pMesh{ nullptr };
 	};
 }

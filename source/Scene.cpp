@@ -56,9 +56,9 @@ namespace dae {
 			}
 		}
 
-		for (int idx = 0; idx < m_Triangles.size(); ++idx)
+		for (int idx = 0; idx < m_TriangleMeshGeometries.size(); ++idx)
 		{
-			GeometryUtils::HitTest_Triangle(m_Triangles[idx], ray, currentHit);
+			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[idx], ray, currentHit);
 			if (currentHit.didHit)
 			{
 				//if new hit is closer than current closer hit than store current hit in closerHit
@@ -90,9 +90,9 @@ namespace dae {
 			}
 		}
 
-		for (int idx = 0; idx < m_Triangles.size(); ++idx)
+		for (int idx = 0; idx < m_TriangleMeshGeometries.size(); ++idx)
 		{
-			bool hasHit{ GeometryUtils::HitTest_Triangle(m_Triangles[idx], ray) };
+			bool hasHit{ GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[idx], ray) };
 			if (hasHit)
 			{
 				return true;
@@ -167,8 +167,8 @@ namespace dae {
 #pragma endregion
 
 #pragma region SCENE W1
-	//void Scene_W1::Initialize()
-	//{
+	void Scene_W1::Initialize()
+	{
 	//			//default: Material id0 >> SolidColor Material (RED)
 	//	constexpr unsigned char matId_Solid_Red = 0;
 	//	const unsigned char matId_Solid_Blue = AddMaterial(new Material_SolidColor{ colors::Blue });
@@ -187,10 +187,10 @@ namespace dae {
 	//	AddPlane({ 0.f, -75.f, 0.f }, { 0.f, 1.f,0.f }, matId_Solid_Yellow);
 	//	AddPlane({ 0.f, 75.f, 0.f }, { 0.f, -1.f,0.f }, matId_Solid_Yellow);
 	//	AddPlane({ 0.f, 0.f, 125.f }, { 0.f, 0.f,-1.f }, matId_Solid_Magenta);
-	//}
+	}
 #pragma region SCENE W2
-	//void Scene_W2::Initialize()
-	//{
+	void Scene_W2::Initialize()
+	{
 	//	m_Camera.origin = { 0.f, 3.f, -9.f };
 	//	m_Camera.fovAngle = 45.f;
 
@@ -219,7 +219,7 @@ namespace dae {
 
 	//	//Light
 	//	AddPointLight(Vector3{ 0.f, 5.f, -5.f }, 70.f, colors::White); //Backlight
-	//}
+	}
 #pragma region SCENE W3
 	void Scene_W3::Initialize()
 	{
@@ -344,32 +344,38 @@ namespace dae {
 
 		//Triangle Mesh
 		//=============
-		const auto triangleMesh{ AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White) };
-		triangleMesh->positions = { {-0.75, -1.f, 0.f},{-0.75, -1.f, 0.f}, {0.75, 1.f, 1.f}, {0.75, 1.f, 1.f} };
-		triangleMesh->indices = {
-			0,1,2, //Triangle 1
-			0,2,3 //Triangle 2
-		};
-
-		triangleMesh->CalculateNormals();
-		triangleMesh->UpdateTransforms();
-
-		//pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
-		//pMesh->positions = {
-		//	{-.75f,-1.f,.0f},  //V0
-		//	{-.75f,1.f, .0f},  //V2
-		//	{.75f,1.f,1.f},    //V3
-		//	{.75f,-1.f,0.f} }; //V4
-
-		//pMesh->indices = {
+		//const auto triangleMesh{ AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White) };
+		//triangleMesh->positions = { {-0.75, -1.f, 0.f},{-0.75, -1.f, 0.f}, {0.75, 1.f, 1.f}, {0.75, 1.f, 1.f} };
+		//triangleMesh->indices = {
 		//	0,1,2, //Triangle 1
-		//	0,2,3  //Triangle 2
+		//	0,2,3 //Triangle 2
 		//};
 
-		//pMesh->CalculateNormals();
+		//triangleMesh->CalculateNormals();
 
-		//pMesh->Translate({ 0.f,1.5f,0.f });
-		//pMesh->UpdateTransforms();
+		//triangleMesh->Translate({ 0.f, 1.5f, 0.f });
+		//triangleMesh->RotateY(45);
+
+		//triangleMesh->UpdateTransforms();
+
+		//Triangle Mesh
+		//=============
+		pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
+		pMesh->positions = {
+			{-.75f,-1.f,.0f},  //V0
+			{-.75f,1.f, .0f},  //V2
+			{.75f,1.f,1.f},    //V3
+			{.75f,-1.f,0.f} }; //V4
+
+		pMesh->indices = {
+			0,1,2, //Triangle 1
+			0,2,3  //Triangle 2
+		};
+
+		pMesh->CalculateNormals();
+
+		pMesh->Translate({ 0.f,1.5f,0.f });
+		pMesh->UpdateTransforms();
 
 		////OBJ
 		////===
@@ -391,6 +397,13 @@ namespace dae {
 		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
 		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
 		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+	}
+	void Scene_W4::Update(Timer* pTimer)
+	{
+		Scene::Update(pTimer);
+
+		pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
+		pMesh->UpdateTransforms();
 	}
 #pragma endregion
 }

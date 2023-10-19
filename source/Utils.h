@@ -84,22 +84,36 @@ namespace dae
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//Normal VS Ray-Direction Check (Perpendicular?)
-			Vector3 a{ triangle.v1 - triangle.v0 };
-			Vector3 b{ triangle.v2 - triangle.v0 };
-			Vector3 n{ Vector3::Cross(a,b) };
-			float dotNormalRay{ Vector3::Dot(n,ray.direction) };
+			//Normal VS Ray-Direction Check (Perpendicular?, then don't do calculation)
+			const float epsilon{ 0.0000001f };
+			float normalViewDot{ Vector3::Dot(triangle.normal, ray.direction) };
+
+			//absolute makes dot product positive
+			if (std::abs(normalViewDot) < epsilon)
+			{
+				return false;
+			}
+			
+			//Cull Mode Check
+			if ( triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0 )
+			{
+				return false;
+			}
+			else if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0)
+			{
+				return false;
+			}
+
+			const Vector3 a{ triangle.v1 - triangle.v0 };
+			const Vector3 b{ triangle.v2 - triangle.v1 };
+			const Vector3 n{ Vector3::Cross(a,b) };
+			const float dotNormalRay{ Vector3::Dot(n,ray.direction) };
 
 			if (AreEqual(dotNormalRay, 0))
 			{
 				return false;
 			}
-			//Cull Mode Check
-			if (dotNormalRay > 0 and triangle.cullMode == TriangleCullMode::BackFaceCulling || 
-				dotNormalRay < 0 and triangle.cullMode == TriangleCullMode::FrontFaceCulling)
-			{
-				return false;
-			}
+			
 			//Ray-Plane test (plane defined by Triangle) + T range check
 			const Vector3 L{ triangle.v0 - ray.origin };
 
@@ -112,11 +126,13 @@ namespace dae
 				return false;
 			}
 
-			Vector3 P{ ray.origin + ray.direction * t};
+			//line to central of triangle from camera 
+			const Vector3 P{ ray.origin + ray.direction * t };
+
 			//Check if hitpoint is inside the Triangle
 			std::vector<Vector3> vertices{ triangle.v0,  triangle.v1 , triangle.v2 };
 
-			for (int verticeIdx = 0; verticeIdx < 2; ++verticeIdx)
+			for (int verticeIdx = 0; verticeIdx < 3; ++verticeIdx)
 			{
 				Vector3 e{ vertices[(verticeIdx + 1) % 3] - vertices[verticeIdx] };
 				Vector3 p{ P - vertices[verticeIdx] };
@@ -144,8 +160,31 @@ namespace dae
 #pragma region TriangeMesh HitTest
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
+			int normalCounter{ 0 };
+			Triangle triangle{};
+
+			//loops through triangles of triangle meshes
+			for (int idx{}; idx < mesh.indices.size(); idx += 3)
+			{
+				//for each group of 3 indices, 
+				//extract corresponding transformed normal vector and 3 transformed positions for triangle
+				triangle.normal = mesh.transformedNormals[normalCounter];
+				triangle.v0 = mesh.transformedPositions[mesh.indices[idx + 2]];
+				triangle.v1 = mesh.transformedPositions[mesh.indices[idx + 1]];
+				triangle.v2 = mesh.transformedPositions[mesh.indices[idx]];
+
+				triangle.cullMode = mesh.cullMode;
+				triangle.materialIndex = mesh.materialIndex;
+
+				++normalCounter;
+
+				//checks for intersection with viewRay 
+				bool hasClosestHit{ HitTest_Triangle(triangle,ray,hitRecord) };
+				if (hasClosestHit)
+				{
+					return true;
+				}
+			}
 			return false;
 		}
 
