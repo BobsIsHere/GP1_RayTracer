@@ -360,38 +360,37 @@ namespace dae {
 
 		//Triangle Mesh
 		//=============
-		pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
-		pMesh->positions = {
-			{-.75f,-1.f,.0f},  //V0
-			{-.75f,1.f, .0f},  //V2
-			{.75f,1.f,1.f},    //V3
-			{.75f,-1.f,0.f} }; //V4
+		//pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
+		//pMesh->positions = {
+		//	{-.75f,-1.f,.0f},  //V0
+		//	{-.75f,1.f, .0f},  //V2
+		//	{.75f,1.f,1.f},    //V3
+		//	{.75f,-1.f,0.f} }; //V4
 
-		pMesh->indices = {
-			0,1,2, //Triangle 1
-			0,2,3  //Triangle 2
-		};
+		//pMesh->indices = {
+		//	0,1,2, //Triangle 1
+		//	0,2,3  //Triangle 2
+		//};
 
-		pMesh->CalculateNormals();
+		//pMesh->CalculateNormals();
 
-		pMesh->Translate({ 0.f,1.5f,0.f });
-		pMesh->UpdateTransforms();
-
-		////OBJ
-		////===
-		//pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
-		//Utils::ParseOBJ("Resources/simple_cube.obj",
-		////Utils::ParseOBJ("Resources/simple_object.obj",
-		//	pMesh->positions, 
-		//	pMesh->normals, 
-		//	pMesh->indices);
-
-		////No need to Calculate the normals, these are calculated inside the ParseOBJ function
+		//pMesh->Translate({ 0.f,1.5f,0.f });
 		//pMesh->UpdateTransforms();
 
-		//pMesh->Scale({ .7f,.7f,.7f });
-		//pMesh->Translate({ .0f,1.f,0.f });
+		//OBJ
+		//===
+		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
+		Utils::ParseOBJ("Resources/simple_cube.obj",
+		//Utils::ParseOBJ("Resources/simple_object.obj",
+			pMesh->positions, 
+			pMesh->normals, 
+			pMesh->indices);
 
+		pMesh->Scale({ .7f,.7f,.7f });
+		pMesh->Translate({ .0f,1.f,0.f });
+
+		//No need to Calculate the normals, these are calculated inside the ParseOBJ function
+		pMesh->UpdateTransforms();
 
 		//Light
 		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
