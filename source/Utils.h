@@ -14,7 +14,7 @@ namespace dae
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//if (ignoreHitRecord){ return false; }
+			if (ignoreHitRecord){ return false; }
 
 			const Vector3 vecToCenter{ sphere.origin - ray.origin };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
@@ -54,7 +54,7 @@ namespace dae
 		{
 			//if t is within limits (min and max)
 			// -> intersection
-			//if (ignoreHitRecord) { return false; }
+			if (ignoreHitRecord) { return false; }
 			
 			Vector3 vecPlaneToOrigin{ ray.origin, plane.origin };
 			const float dotProduct{ Vector3::Dot(vecPlaneToOrigin,plane.normal) };
@@ -84,30 +84,40 @@ namespace dae
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//Normal VS Ray-Direction Check (Perpendicular?, then don't do calculation)
+			//Variables
+			const int nrOfVertices{ 3 };
 			const float epsilon{ 0.0000001f };
-			float normalViewDot{ Vector3::Dot(triangle.normal, ray.direction) };
+			const float normalViewDot{ Vector3::Dot(triangle.normal, ray.direction) };
+
+			//Cull Mode Check
+			if (triangle.cullMode == TriangleCullMode::FrontFaceCulling /*&& normalViewDot < 0.f*/)
+			{
+				if (!ignoreHitRecord && normalViewDot < epsilon ||
+					ignoreHitRecord && normalViewDot > epsilon)
+				{
+					return false;
+				}
+			}
+			if (triangle.cullMode == TriangleCullMode::BackFaceCulling /*&& normalViewDot > 0.f*/)
+			{
+				if (!ignoreHitRecord && normalViewDot > epsilon ||
+					ignoreHitRecord && normalViewDot < epsilon)
+				{
+					return false;
+				}
+			}
+
+			//Normal VS Ray-Direction Check (Perpendicular?, then don't do calculation)
+			const Vector3 a{ triangle.v1 - triangle.v0 };
+			const Vector3 b{ triangle.v2 - triangle.v0 };
+			const Vector3 n{ Vector3::Cross(a,b) };
+			const float dotNormalRay{ Vector3::Dot(n,ray.direction) };
 
 			//absolute makes dot product positive
 			if (std::abs(normalViewDot) < epsilon)
 			{
 				return false;
 			}
-			
-			//Cull Mode Check
-			if ( triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0 )
-			{
-				return false;
-			}
-			else if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0)
-			{
-				return false;
-			}
-
-			const Vector3 a{ triangle.v1 - triangle.v0 };
-			const Vector3 b{ triangle.v2 - triangle.v1 };
-			const Vector3 n{ Vector3::Cross(a,b) };
-			const float dotNormalRay{ Vector3::Dot(n,ray.direction) };
 
 			if (AreEqual(dotNormalRay, 0))
 			{
@@ -132,9 +142,9 @@ namespace dae
 			//Check if hitpoint is inside the Triangle
 			std::vector<Vector3> vertices{ triangle.v0,  triangle.v1 , triangle.v2 };
 
-			for (int verticeIdx = 0; verticeIdx < 3; ++verticeIdx)
+			for (int verticeIdx = 0; verticeIdx < nrOfVertices; ++verticeIdx)
 			{
-				Vector3 e{ vertices[(verticeIdx + 1) % 3] - vertices[verticeIdx] };
+				Vector3 e{ vertices[(verticeIdx + 1) % nrOfVertices] - vertices[verticeIdx] };
 				Vector3 p{ P - vertices[verticeIdx] };
 				Vector3 crossProduct{ Vector3::Cross(e,p) };
 				
@@ -143,12 +153,17 @@ namespace dae
 					return false;
 				}
 			}
+
 			//Fill-in HitRecord (if required)
-			hitRecord.t = t;
-			hitRecord.origin = P;
-			hitRecord.normal = triangle.normal;
-			hitRecord.materialIndex = triangle.materialIndex;
-			return hitRecord.didHit = true;
+			if (!ignoreHitRecord)
+			{
+				hitRecord.t = t;
+				hitRecord.origin = P;
+				hitRecord.normal = triangle.normal;
+				hitRecord.materialIndex = triangle.materialIndex;
+				hitRecord.didHit = true;
+			}
+			return true;
 		}
 
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)
@@ -156,12 +171,72 @@ namespace dae
 			HitRecord temp{};
 			return HitTest_Triangle(triangle, ray, temp, true);
 		}
+
+		inline bool HitTest_Triangle_MullerTrombore(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
+		{
+			const float epsilon{ 0.0000001f };
+			const float normalViewDot{ Vector3::Dot(triangle.normal, ray.direction) };
+
+			if (std::abs(normalViewDot) < epsilon)
+			{
+				return false;
+			}
+
+			//Cull Mode Check
+			if (triangle.cullMode == TriangleCullMode::FrontFaceCulling)
+			{
+				if (!ignoreHitRecord && normalViewDot < 0.f ||
+					ignoreHitRecord && normalViewDot > 0.f)
+				{
+					return false;
+				}
+			}
+			if (triangle.cullMode == TriangleCullMode::BackFaceCulling)
+			{
+				if (!ignoreHitRecord && normalViewDot > 0.f ||
+					ignoreHitRecord && normalViewDot < 0.f)
+				{
+					return false;
+				}
+			}
+
+			const Vector3 edg1{ triangle.v1 - triangle.v0 };
+			const Vector3 edg2{ triangle.v2 - triangle.v0 };
+			const Vector3 n{ Vector3::Cross(ray.direction, edg2) };
+			const float dotNormalToRay{ Vector3::Dot(edg1,n) };
+
+			if (std::abs(dotNormalToRay) < epsilon)
+			{
+				return false;
+			}
+
+
+
+			//Fill-in HitRecord (if required)
+			if (!ignoreHitRecord)
+			{
+				//hitRecord.t = t;
+				//hitRecord.origin = P;
+				hitRecord.normal = triangle.normal;
+				hitRecord.materialIndex = triangle.materialIndex;
+				hitRecord.didHit = true;
+			}
+			return true;
+		}
+
+		inline bool HitTest_Triangle_MullerTrombore(const Triangle& triangle, const Ray& ray)
+		{
+			HitRecord temp{};
+			return HitTest_Triangle_MullerTrombore(triangle, ray, temp, true);
+		}
 #pragma endregion
 #pragma region TriangeMesh HitTest
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			int normalCounter{ 0 };
+			float distance{ ray.max };
 			Triangle triangle{};
+			HitRecord tempHit{};
 
 			//loops through triangles of triangle meshes
 			for (int idx{}; idx < mesh.indices.size(); idx += 3)
@@ -179,10 +254,13 @@ namespace dae
 				++normalCounter;
 
 				//checks for intersection with viewRay 
-				bool hasClosestHit{ HitTest_Triangle(triangle,ray,hitRecord) };
-				if (hasClosestHit)
+				if (HitTest_Triangle(triangle, ray, hitRecord))
 				{
-					return true;
+					if (tempHit.didHit && tempHit.t < distance)
+					{
+						distance = tempHit.t;
+						hitRecord = tempHit;
+					}
 				}
 			}
 			return false;

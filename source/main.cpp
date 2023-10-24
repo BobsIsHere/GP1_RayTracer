@@ -49,14 +49,7 @@ int main(int argc, char* args[])
 	//const auto pScene = new Scene_W2();
 	//const auto pScene = new Scene_W3();
 	const auto pScene = new Scene_W4();
-	pScene->Initialize();
-
-	//Test Dot&Cross Vector3 and Vector4
-	/*Vector3 v1{ 4,5,6 };
-	Vector3 v2{ 8,9,10 };
-	float dotResult{ Vector3::Dot( v1, v2) };
-	Vector3 crossResult{ Vector3::Cross( v1, v2) };
-	std::cout << dotResult << std::endl;*/
+	pScene->Initialize_ReferenceScene();
 
 	//Start loop
 	pTimer->Start();
@@ -94,7 +87,7 @@ int main(int argc, char* args[])
 		}
 
 		//--------- Update ---------
-		pScene->Update(pTimer);
+		pScene->Update_ReferenceScene(pTimer);
 
 		//--------- Render ---------
 		pRenderer->Render(pScene);

@@ -123,12 +123,15 @@ namespace dae
 
 		void CalculateNormals()
 		{
+			normals.clear();
+			normals.reserve(indices.size() / 3);
+			
 			for (int idx = 0; idx < indices.size(); idx += 3)
 			{
 				const Vector3 a{ positions[indices[idx + 1]] - positions[indices[idx]] };
 				const Vector3 b{ positions[indices[idx + 2]] - positions[indices[idx + 1]] };
 
-				normals.push_back(Vector3::Cross(a, b));
+				normals.push_back(Vector3::Cross(a, b).Normalized());
 			}
 		}
 

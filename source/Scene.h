@@ -51,9 +51,6 @@ namespace dae
 		std::vector<Light> m_Lights{};
 		std::vector<Material*> m_Materials{};
 
-		//temp (Individual Triangle Testing)
-		//std::vector<Triangle> m_Triangles;
-
 		Camera m_Camera{};
 
 		Sphere* AddSphere(const Vector3& origin, float radius, unsigned char materialIndex = 0);
@@ -127,9 +124,15 @@ namespace dae
 		Scene_W4& operator=(Scene_W4&&) noexcept = delete;
 
 		void Initialize() override;
+		void Initialize_ReferenceScene();
+		void Initialize_BunnyScene();
+
 		void Update(Timer* pTimer) override;
+		void Update_ReferenceScene(Timer* pTimer);
+		void Update_BunnyScene(Timer* pTimer);
 
 	private:
 		TriangleMesh* m_Meshes[3]{};
+		TriangleMesh* pMesh{ nullptr };
 	};
 }
