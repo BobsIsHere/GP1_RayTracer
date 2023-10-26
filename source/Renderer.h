@@ -2,6 +2,15 @@
 
 #include <cstdint>
 
+//Project includes
+#include "Math.h"
+#include "Matrix.h"
+#include "Material.h"
+#include "Scene.h"
+#include "Utils.h"
+#include <iostream>
+
+
 struct SDL_Window;
 struct SDL_Surface;
 
@@ -21,6 +30,7 @@ namespace dae
 		Renderer& operator=(Renderer&&) noexcept = delete;
 
 		void Render(Scene* pScene) const;
+		void RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float aspectRatio, const Matrix cameraToWorld, const Vector3 cameraOrigin) const;
 		bool SaveBufferToImage() const;
 
 		void CycleLightingMode();

@@ -14,8 +14,6 @@ namespace dae
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			if (ignoreHitRecord){ return false; }
-
 			const Vector3 vecToCenter{ sphere.origin - ray.origin };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
 
@@ -54,8 +52,6 @@ namespace dae
 		{
 			//if t is within limits (min and max)
 			// -> intersection
-			if (ignoreHitRecord) { return false; }
-			
 			Vector3 vecPlaneToOrigin{ ray.origin, plane.origin };
 			const float dotProduct{ Vector3::Dot(vecPlaneToOrigin,plane.normal) };
 			const float dotNormals{ Vector3::Dot(ray.direction, plane.normal)};
@@ -231,39 +227,58 @@ namespace dae
 		}
 #pragma endregion
 #pragma region TriangeMesh HitTest
+		inline bool SlabTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray)
+		{
+			float tx1{ (mesh.transformedMinAABB.x - ray.origin.x) / ray.direction.x };
+			float tx2{ (mesh.transformedMaxAABB.x - ray.origin.x) / ray.direction.x };
+
+			float tMin{ std::min(tx1, tx2) };
+			float tMax{ std::max(tx1,tx2) };
+
+			float ty1{ (mesh.transformedMinAABB.y - ray.origin.y) / ray.direction.y };
+			float ty2{ (mesh.transformedMaxAABB.y - ray.origin.y) / ray.direction.y };
+
+			tMin = std::max(tMin, std::min(ty1, ty2));
+			tMax = std::min(tMax, std::max(ty1, ty2));
+
+			float tz1{ (mesh.transformedMinAABB.z - ray.origin.z) / ray.direction.z };
+			float tz2{ (mesh.transformedMaxAABB.z - ray.origin.z) / ray.direction.z };
+
+			tMin = std::max(tMin, std::min(tz1, tz2));
+			tMax = std::min(tMax, std::max(tz1, tz2));
+
+			return tMax > 0 && tMax >= tMin;
+		}
+
+		//FUNCTION MADE BY INE HOCEDEZ
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			int normalCounter{ 0 };
-			float distance{ ray.max };
-			Triangle triangle{};
-			HitRecord tempHit{};
+			//SlabTest
+			if (!SlabTest_TriangleMesh(mesh, ray)){ return false; }
+			
+			Ray workingRay{ ray };
 
 			//loops through triangles of triangle meshes
 			for (int idx{}; idx < mesh.indices.size(); idx += 3)
 			{
 				//for each group of 3 indices, 
 				//extract corresponding transformed normal vector and 3 transformed positions for triangle
-				triangle.normal = mesh.transformedNormals[normalCounter];
-				triangle.v0 = mesh.transformedPositions[mesh.indices[idx + 2]];
-				triangle.v1 = mesh.transformedPositions[mesh.indices[idx + 1]];
-				triangle.v2 = mesh.transformedPositions[mesh.indices[idx]];
+				Triangle triangle{ mesh.transformedPositions[mesh.indices[idx]], mesh.transformedPositions[mesh.indices[idx + 1]],
+								  mesh.transformedPositions[mesh.indices[idx + 2]] };
 
 				triangle.cullMode = mesh.cullMode;
 				triangle.materialIndex = mesh.materialIndex;
 
-				++normalCounter;
-
 				//checks for intersection with viewRay 
-				if (HitTest_Triangle(triangle, ray, hitRecord))
+				if (HitTest_Triangle(triangle, workingRay, hitRecord))
 				{
-					if (tempHit.didHit && tempHit.t < distance)
-					{
-						distance = tempHit.t;
-						hitRecord = tempHit;
-					}
+					workingRay.max = hitRecord.t;
 				}
 			}
-			return false;
+			if (!hitRecord.didHit) { return false; }
+			hitRecord.materialIndex = mesh.materialIndex;
+
+			return true;
 		}
 
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray)
