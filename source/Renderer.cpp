@@ -22,19 +22,22 @@ void Renderer::Render(Scene* pScene) const
 	Camera& camera = pScene->GetCamera();
 	const Matrix cameraToWorld{ camera.CalculateCameraToWorld() };
 
-	//Precompute constants
+	//precompute constants
 	const float ascpectRatio{ m_Width / static_cast<float>(m_Height) };
 	const float fov{ tanf( (camera.fovAngle * TO_RADIANS) / 2 ) };
 	const float minLengthLight{ 0.0001f };
 	
-	uint32_t amountOfPixels{ uint32_t(m_Width * m_Height) };
+	const uint32_t amountOfPixels{ uint32_t(m_Width * m_Height) };
 
 #if defined(PARALLEL_EXECUTION)
-	//Parallel logic
+	//parallel logic
 	std::vector<uint32_t> pixelIndicies{};
 	pixelIndicies.reserve(amountOfPixels);
 
-	for (uint32_t idx{}; idx < amountOfPixels; ++idx) pixelIndicies.emplace_back(idx);
+	for (uint32_t idx{}; idx < amountOfPixels; ++idx)
+	{
+		pixelIndicies.emplace_back(idx);
+	}
 
 	std::for_each(std::execution::par, pixelIndicies.begin(), pixelIndicies.end(), [&](int idx) 
 	{
@@ -42,8 +45,8 @@ void Renderer::Render(Scene* pScene) const
 	} );
 
 #else
-	//Sychronous logic (no threading)
-	uint32_t amountOfPixels{ uint32_t(m_Width * m_Height) };
+	//sychronous logic (no threading)
+	const uint32_t amountOfPixels{ uint32_t(m_Width * m_Height) };
 
 	for (uint32_t pixelIndex{}; pixelIndex < amountOfPixels; ++pixelIndex)
 	{
@@ -58,80 +61,72 @@ void Renderer::Render(Scene* pScene) const
 
 void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float aspectRatio, const Matrix cameraToWorld, const Vector3 cameraOrigin) const
 {
-	//Variables
-	auto& materials{ pScene->GetMaterials() };
-	auto& lights = pScene->GetLights();
+	//variables
+	const auto& materials{ pScene->GetMaterials() };
+	const auto& lights = pScene->GetLights();
+	const float minLengthLight{ 0.0001f };
 
 	const uint32_t px{ pixelIndex % m_Width }, py{ pixelIndex / m_Width };
+	const float cx{ (2 * ((px + 0.5f) / float(m_Width)) - 1) * aspectRatio * fov };
+	const float cy{ (1 - (2 * ((py + 0.5f) / float(m_Height)))) * fov };
 
-	float rx{ px + 0.5f }, ry{ py + 0.5f };
-	float cx{ (2 * (rx / float(m_Width)) - 1) * aspectRatio * fov };
-	float cy{ (1 - (2 * (ry / float(m_Height)))) * fov };
-
-	//Code
+	//code
 	Vector3 rayDirection = Vector3{ cx, cy, 1.f };
 	rayDirection = cameraToWorld.TransformVector(rayDirection);
 	rayDirection.Normalize();
 
-	//Color to write to color buffer (default = black)
+	//color to write to color buffer (default = black)
 	ColorRGB finalColor{};
 
-	////Ray we are casting from camera towards each pixel
+	//ray we are casting from camera towards each pixel
 	Ray viewRay{ cameraOrigin, rayDirection };
-	float reflectionValue{ 1.f };
-	const float minLengthLight{ 0.0001f };
+	
+	//HitRecord containing more info about potential hit
+	HitRecord closestHit{};
+	pScene->GetClosestHit(viewRay, closestHit);
 
-	for (int bounce = 0; bounce < 1; ++bounce)
+	if (closestHit.didHit)
 	{
-		//HitRecord containing more info about potential hit
-		HitRecord closestHit{};
-		pScene->GetClosestHit(viewRay, closestHit);
+		const Vector3 movedHitOrigin{ closestHit.origin + closestHit.normal * minLengthLight };
 
-		if (closestHit.didHit)
+		for (const auto& light : lights)
 		{
-			const Vector3 movedHitOrigin{ closestHit.origin + closestHit.normal * minLengthLight };
+			//variables
+			Vector3 directionLight{ LightUtils::GetDirectionToLight(light, movedHitOrigin) };
+			const float distance{ directionLight.Normalize() - minLengthLight };
+			const ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, -rayDirection) };
 
-			for (const auto& light : lights)
+			const float observedArea{ Vector3::Dot(closestHit.normal, directionLight) };
+			if (observedArea <= 0)
 			{
-				//variables
-				Vector3 directionLight{ LightUtils::GetDirectionToLight(light, movedHitOrigin) };
-				const float distance{ directionLight.Normalize() - minLengthLight };
-				ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, -rayDirection) };
+				continue;
+			}
 
-				const float observedArea{ Vector3::Dot(closestHit.normal, directionLight) };
-				if (observedArea <= 0)
-				{
-					continue;
-				}
+			const Ray lightRay{ movedHitOrigin, directionLight.Normalized(), minLengthLight, distance};
+			if (m_ShadowsEnabled && pScene->DoesHit(lightRay))
+			{
+				continue;
+			}
 
-				const Ray lightRay{ movedHitOrigin, directionLight.Normalized(), minLengthLight, distance};
-				if (m_ShadowsEnabled && pScene->DoesHit(lightRay))
-				{
-					continue;
-				}
-
-				switch (m_CurrentLightingMode)
-				{
-				case dae::Renderer::LightingMode::ObservedArea:
-					finalColor += ColorRGB{ 1.f, 1.f, 1.f } * observedArea;
-					break;
-				case dae::Renderer::LightingMode::Radiance:
-					finalColor += LightUtils::GetRadiance(light, closestHit.origin);
-					break;
-				case dae::Renderer::LightingMode::BRDF:
-					finalColor += brdfRGB;
-					break;
-				case dae::Renderer::LightingMode::Combined:
-					finalColor += LightUtils::GetRadiance(light, closestHit.origin) * brdfRGB * observedArea * reflectionValue;
-					break;
-				}
+			switch (m_CurrentLightingMode)
+			{
+			case dae::Renderer::LightingMode::ObservedArea:
+				finalColor += ColorRGB{ 1.f, 1.f, 1.f } * observedArea;
+				break;
+			case dae::Renderer::LightingMode::Radiance:
+				finalColor += LightUtils::GetRadiance(light, closestHit.origin);
+				break;
+			case dae::Renderer::LightingMode::BRDF:
+				finalColor += brdfRGB;
+				break;
+			case dae::Renderer::LightingMode::Combined:
+				finalColor += LightUtils::GetRadiance(light, closestHit.origin) * brdfRGB * observedArea;
+				break;
 			}
 		}
-		viewRay.direction = Vector3::Reflect(viewRay.direction, closestHit.normal);
-		viewRay.origin = closestHit.origin;
-
-		//reflectionValue /= 3;
 	}
+	viewRay.direction = Vector3::Reflect(viewRay.direction, closestHit.normal);
+	viewRay.origin = closestHit.origin;
 
 	finalColor.MaxToOne();
 

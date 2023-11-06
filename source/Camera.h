@@ -42,7 +42,7 @@ namespace dae
 			up = Vector3::Cross(forward, right);
 			up = up.Normalized();
 
-			//Rotation Matrix (Row based)
+			//rotation matrix
 			cameraToWorld = { Vector4{right,0}, Vector4{up,0}, Vector4{forward,0}, Vector4{origin,1} };
 			return cameraToWorld;
 		}
@@ -51,7 +51,7 @@ namespace dae
 		{
 			const float deltaTime = pTimer->GetElapsed();
 
-			//Keyboard Input
+			//keyboard input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
 
 			if (pKeyboardState[SDL_SCANCODE_W])
@@ -71,7 +71,7 @@ namespace dae
 				origin.x -= speed * deltaTime;
 			}
 
-			//Mouse Input
+			//mouse input
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
@@ -84,11 +84,11 @@ namespace dae
 					totalPitch += mouseY;
 
 					// Create rotation matrices for pitch and yaw
-					Matrix rotationX = Matrix::CreateRotationX(totalPitch * TO_RADIANS);
-					Matrix rotationY = Matrix::CreateRotationY(totalYaw * TO_RADIANS);
+					const Matrix rotationX = Matrix::CreateRotationX(totalPitch * TO_RADIANS);
+					const Matrix rotationY = Matrix::CreateRotationY(totalYaw * TO_RADIANS);
 
 					// Combine the two rotations
-					Matrix rotation = rotationX * rotationY;
+					const Matrix rotation = rotationX * rotationY;
 
 					// Update the camera's forward vector based on the new orientation
 					forward = rotation.TransformVector(Vector3::UnitZ).Normalized();

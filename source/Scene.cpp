@@ -74,7 +74,7 @@ namespace dae {
 	{
 		for (int idx = 0; idx < m_SphereGeometries.size(); ++idx)
 		{
-			bool hasHit{ GeometryUtils::HitTest_Sphere(m_SphereGeometries[idx], ray) };
+			const bool hasHit{ GeometryUtils::HitTest_Sphere(m_SphereGeometries[idx], ray) };
 			if (hasHit)
 			{
 				return true;
@@ -83,7 +83,7 @@ namespace dae {
 
 		for (int idx = 0; idx < m_PlaneGeometries.size(); ++idx)
 		{
-			bool hasHit{ GeometryUtils::HitTest_Plane(m_PlaneGeometries[idx], ray) };
+			const bool hasHit{ GeometryUtils::HitTest_Plane(m_PlaneGeometries[idx], ray) };
 			if (hasHit)
 			{
 				return true;
@@ -92,7 +92,7 @@ namespace dae {
 
 		for (int idx = 0; idx < m_TriangleMeshGeometries.size(); ++idx)
 		{
-			bool hasHit{ GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[idx], ray) };
+			const bool hasHit{ GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[idx], ray) };
 			if (hasHit)
 			{
 				return true;
@@ -448,16 +448,8 @@ namespace dae {
 		m_Camera.origin = { 0, 3, -9 };
 		m_Camera.fovAngle = 45.f;
 
-		const auto matCT_GrayRoughMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, 1.f));
-		const auto matCT_GrayMediumMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .6f));
-		const auto matCT_GraySmoothMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .1f));
-		const auto matCT_GrayRoughPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, .0f, 1.f));
-		const auto matCT_GrayMediumPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, .0f, .6f));
-		const auto matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, .0f, .1f));
-
 		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
 		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
-		const auto matLambert_Gray = AddMaterial(new Material_Lambert(colors::Gray, 1.f));
 
 		AddPlane(Vector3{ 0.f, 0.f, 10.f }, Vector3{ 0.f, 0.f, -1.f }, matLambert_GrayBlue); //BACK
 		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
@@ -465,7 +457,7 @@ namespace dae {
 		AddPlane(Vector3{ 5.f, 0.f, 0.f }, Vector3{ -1.f, 0.f, 0.f }, matLambert_GrayBlue); //RIGHT
 		AddPlane(Vector3{ -5.f, 0.f, 0.f }, Vector3{ 1.f, 0.f, 0.f }, matLambert_GrayBlue); //LEFT
 
-		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_Gray);
+		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
 		Utils::ParseOBJ("Resources/lowpoly_bunny2.obj",
 			//Utils::ParseOBJ("Resources/lowpoly_bunny2.obj",
 			pMesh->positions,
@@ -515,7 +507,9 @@ namespace dae {
 	void Scene_W4::Update_BunnyScene(Timer* pTimer)
 	{
 		Scene::Update(pTimer);
-		pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
+		const auto yawAngle{ (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2 };
+
+		pMesh->RotateY(yawAngle);
 		pMesh->UpdateTransforms();
 	}
 #pragma endregion

@@ -45,17 +45,11 @@ int main(int argc, char* args[])
 	const auto pTimer = new Timer();
 	const auto pRenderer = new Renderer(pWindow);
 
-	//const auto pScene = new Scene_W1();
-	//const auto pScene = new Scene_W2();
-	//const auto pScene = new Scene_W3();
 	const auto pScene = new Scene_W4();
-	pScene->Initialize_ReferenceScene();
+	pScene->Initialize_BunnyScene();
 
 	//Start loop
 	pTimer->Start();
-
-	// Start Benchmark
-	// pTimer->StartBenchmark();
 
 	float printTimer = 0.f;
 	bool isLooping = true;
@@ -82,12 +76,17 @@ int main(int argc, char* args[])
 				{
 					pRenderer->CycleLightingMode();
 				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F6)
+				{
+					// Start Benchmark
+					pTimer->StartBenchmark();
+				}
 				break;
 			}
 		}
 
 		//--------- Update ---------
-		pScene->Update_ReferenceScene(pTimer);
+		pScene->Update_BunnyScene(pTimer);
 
 		//--------- Render ---------
 		pRenderer->Render(pScene);

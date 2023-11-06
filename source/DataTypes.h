@@ -158,18 +158,17 @@ namespace dae
 
 		void UpdateTransforms()
 		{
-			//Calculate Final Transform 
-			//const auto finalTransform = ...
+			//calculate final transform 
 			const Matrix finalTransform{ scaleTransform * rotationTransform * translationTransform };
 
-			//Clear normals and positions, reserving memory for vectors
+			//clear normals and positions, reserving memory for vectors
 			transformedNormals.clear();
 			transformedNormals.reserve(normals.size());
 
 			transformedPositions.clear();
 			transformedPositions.reserve(positions.size());
 
-			//Transform Positions (positions > transformedPositions)
+			//transform positions
 			//loops over position, applies finalTransform to each and stores transformed point in vector
 			for (int positionIdx = 0; positionIdx < positions.size(); ++positionIdx)
 			{
@@ -177,7 +176,7 @@ namespace dae
 				transformedPositions.emplace_back(result);
 			}
 
-			//Transform Normals (normals > transformedNormals)
+			//transform normals
 			//loops over normals, applies finalTransform to each and stores transformed normal in vector
 			for (int normalIdx = 0; normalIdx < normals.size(); ++normalIdx)
 			{
@@ -185,13 +184,13 @@ namespace dae
 				transformedNormals.emplace_back(result);
 			}
 
-			//Update Transforms
+			//update transforms
 			UpdateTransformedAABB(finalTransform);
 		}
 
 		void UpdateTransformedAABB(const Matrix& finalTransform)
 		{
-			//AABB Update : be careful -> transform the 8 vertices of the AABB
+			//AABB update : be careful -> transform the 8 vertices of the AABB
 			//and calculate new min. and max.
 			Vector3 tMinAABB{ finalTransform.TransformPoint(minAABB) };
 			Vector3 tMaxAABB{ tMinAABB };
