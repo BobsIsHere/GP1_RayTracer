@@ -46,7 +46,7 @@ int main(int argc, char* args[])
 	const auto pRenderer = new Renderer(pWindow);
 
 	const auto pScene = new Scene_W4();
-	pScene->Initialize_BunnyScene();
+	pScene->Initialize_ReferenceScene();
 
 	//Start loop
 	pTimer->Start();
@@ -86,7 +86,7 @@ int main(int argc, char* args[])
 		}
 
 		//--------- Update ---------
-		pScene->Update_BunnyScene(pTimer);
+		pScene->Update_ReferenceScene(pTimer);
 
 		//--------- Render ---------
 		pRenderer->Render(pScene);

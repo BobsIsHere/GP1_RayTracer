@@ -14,18 +14,17 @@ namespace dae
 		{	
 			//variables
 			const Vector3 vecToCenter{ sphere.origin - ray.origin };
-			const float sphereRadiusSqr{ sphere.radius * sphere.radius };
 			const float slantedSide{ vecToCenter.x * vecToCenter.x + vecToCenter.y * vecToCenter.y + vecToCenter.z * vecToCenter.z };
 			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
 			const float discriminant{ slantedSide - dotProduct * dotProduct };
 
 			//if length of discriminant is bigger than radius of sphere -> ray didn't hit
-			if (discriminant > sphereRadiusSqr)
+			if (discriminant > sphere.radius * sphere.radius)
 			{
 				return false;
 			}
 
-			const float distanceIntersection{ sqrtf(sphereRadiusSqr - discriminant) };
+			const float distanceIntersection{ sqrtf(sphere.radius * sphere.radius - discriminant) };
 			const float t0{ dotProduct - distanceIntersection };
 
 			//if t0 is outside min and max of ray -> ray didn't hit
@@ -257,15 +256,15 @@ namespace dae
 		//HELPED BY INE HOCEDEZ
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
+			//SlabTest
+			if (!SlabTest_TriangleMesh(mesh, ray))
+			{
+				return false;
+			}
+			
 			//variables
 			Ray tempRay{ ray };
 			Triangle tempTriangle{};
-
-			//SlabTest
-			if (!SlabTest_TriangleMesh(mesh, ray))
-			{ 
-				return false; 
-			}
 			
 			//loops over all faces of meshes
 			for (int idx{}; idx < mesh.indices.size() / 3; ++idx)
