@@ -24,7 +24,7 @@ void Renderer::Render(Scene* pScene) const
 
 	//precompute constants
 	const float ascpectRatio{ m_Width / static_cast<float>(m_Height) };
-	const float fov{ tanf( (camera.fovAngle * TO_RADIANS) / 2 ) };
+	const float fov{ tanf( (camera.fovAngle * TO_RADIANS) * 0.5f ) };
 	const float minLengthLight{ 0.0001f };
 	
 	const uint32_t amountOfPixels{ uint32_t(m_Width * m_Height) };
@@ -63,7 +63,7 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 {
 	//variables
 	const auto& materials{ pScene->GetMaterials() };
-	const auto& lights = pScene->GetLights();
+	const auto& lights{ pScene->GetLights() };
 	const float minLengthLight{ 0.0001f };
 
 	const uint32_t px{ pixelIndex % m_Width }, py{ pixelIndex / m_Width };
@@ -71,7 +71,7 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 	const float cy{ (1 - (2 * ((py + 0.5f) / float(m_Height)))) * fov };
 
 	//code
-	Vector3 rayDirection = Vector3{ cx, cy, 1.f };
+	Vector3 rayDirection{ cx, cy, 1.f };
 	rayDirection = cameraToWorld.TransformVector(rayDirection);
 	rayDirection.Normalize();
 
@@ -92,7 +92,7 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 		for (const auto& light : lights)
 		{
 			//variables
-			Vector3 directionLight{ LightUtils::GetDirectionToLight(light, movedHitOrigin) };
+			Vector3 directionLight{ LightUtils::GetDirectionToLight(light, closestHit.origin) };
 			const float distance{ directionLight.Normalize() - minLengthLight };
 			const ColorRGB brdfRGB{ materials[closestHit.materialIndex]->Shade(closestHit, directionLight, -rayDirection) };
 
@@ -102,7 +102,7 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 				continue;
 			}
 
-			const Ray lightRay{ movedHitOrigin, directionLight.Normalized(), minLengthLight, distance};
+			const Ray lightRay{ closestHit.origin, directionLight, minLengthLight, distance};
 			if (m_ShadowsEnabled && pScene->DoesHit(lightRay))
 			{
 				continue;

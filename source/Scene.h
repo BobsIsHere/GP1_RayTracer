@@ -135,4 +135,62 @@ namespace dae
 		TriangleMesh* m_Meshes[3]{};
 		TriangleMesh* pMesh{ nullptr };
 	};
+
+	//+++++++++++++++++++++++++++++++++++++++++
+	//WEEK5 Reference Scene
+	class ReferenceScene final : public Scene
+	{
+	public:
+		ReferenceScene() = default;
+		~ReferenceScene() override = default;
+
+		ReferenceScene(const ReferenceScene&) = delete;
+		ReferenceScene(ReferenceScene&&) noexcept = delete;
+		ReferenceScene& operator=(const ReferenceScene&) = delete;
+		ReferenceScene& operator=(ReferenceScene&&) noexcept = delete;
+
+		void Initialize() override;
+		void Update(Timer* pTimer) override;
+
+	private:
+		TriangleMesh* m_Meshes[3]{};
+	};
+	//+++++++++++++++++++++++++++++++++++++++++
+	//WEEK5 Bunny Scene
+	class BunnyScene final : public Scene
+	{
+	public:
+		BunnyScene() = default;
+		~BunnyScene() override = default;
+
+		BunnyScene(const BunnyScene&) = delete;
+		BunnyScene(BunnyScene&&) noexcept = delete;
+		BunnyScene& operator=(const BunnyScene&) = delete;
+		BunnyScene& operator=(BunnyScene&&) noexcept = delete;
+
+		void Initialize() override;
+		void Update(Timer* pTimer) override;
+
+	private:
+		TriangleMesh* pMesh{ nullptr };
+	};
+	//+++++++++++++++++++++++++++++++++++++++++
+	//WEEK5 Extra Scene
+	class ExtraScene final : public Scene
+	{
+	public:
+		ExtraScene() = default;
+		~ExtraScene() override = default;
+
+		ExtraScene(const ExtraScene&) = delete;
+		ExtraScene(ExtraScene&&) noexcept = delete;
+		ExtraScene& operator=(const ExtraScene&) = delete;
+		ExtraScene& operator=(ExtraScene&&) noexcept = delete;
+
+		void Initialize() override;
+		void Update(Timer* pTimer) override;
+
+	private:
+		TriangleMesh* pMesh{ nullptr };
+	};
 }

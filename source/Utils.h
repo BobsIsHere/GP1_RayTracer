@@ -30,13 +30,36 @@ namespace dae
 			//if t0 is outside min and max of ray -> ray didn't hit
 			if (t0 < ray.min || t0 > ray.max)
 			{
-				return false;
+				const float t1{ dotProduct + distanceIntersection };
+
+				if(t1 < ray.min || t1 > ray.max)
+				{
+					return false;
+				}
+				else
+				{
+					if (ignoreHitRecord)
+					{
+						return true;
+					}
+					//location of intersection
+					hitRecord.origin = ray.origin - t1 * ray.direction;
+					//normal of origin
+					hitRecord.normal = (hitRecord.origin - sphere.origin) / sphere.radius;
+					hitRecord.t = t1;
+					hitRecord.materialIndex = sphere.materialIndex;
+					return hitRecord.didHit = true;
+				}
 			}
 
+			if (ignoreHitRecord)
+			{
+				return true;
+			}
 			//location of intersection
 			hitRecord.origin = ray.origin + t0 * ray.direction;
 			//normal of origin
-			hitRecord.normal = (hitRecord.origin - sphere.origin).Normalized();
+			hitRecord.normal = (hitRecord.origin - sphere.origin) / sphere.radius;
 			hitRecord.t = t0;
 			hitRecord.materialIndex = sphere.materialIndex;
 			return hitRecord.didHit = true;
@@ -45,6 +68,7 @@ namespace dae
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
 		{
 			HitRecord temp{};
+			temp.t = ray.max;
 			return HitTest_Sphere(sphere, ray, temp, true);
 		}
 #pragma endregion
@@ -78,6 +102,7 @@ namespace dae
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray)
 		{
 			HitRecord temp{};
+			temp.t = ray.max;
 			return HitTest_Plane(plane, ray, temp, true);
 		}
 #pragma endregion
@@ -158,6 +183,7 @@ namespace dae
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)
 		{
 			HitRecord temp{};
+			temp.t = ray.max;
 			return HitTest_Triangle(triangle, ray, temp, true);
 		}
 
@@ -172,11 +198,23 @@ namespace dae
 			}
 
 			//cull mode check
-			if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0.f ||
-				triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0.f)
+			if (!ignoreHitRecord)
 			{
-				return false;
+				if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0.f ||
+					triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0.f)
+				{
+					return false;
+				}
 			}
+			else
+			{
+				if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot > 0.f ||
+					triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot < 0.f)
+				{
+					return false;
+				}
+			}
+			
 
 			//vectors for 2 edges sharing vertice 0
 			const Vector3 edge1{ triangle.v1 - triangle.v0 };
@@ -226,6 +264,7 @@ namespace dae
 		inline bool HitTest_Triangle_MullerTrombore(const Triangle& triangle, const Ray& ray)
 		{
 			HitRecord temp{};
+			temp.t = ray.max;
 			return HitTest_Triangle_MullerTrombore(triangle, ray, temp, true);
 		}
 #pragma endregion
@@ -266,21 +305,41 @@ namespace dae
 			Ray tempRay{ ray };
 			Triangle tempTriangle{};
 			
-			//loops over all faces of meshes
-			for (int idx{}; idx < mesh.indices.size() / 3; ++idx)
+			//checks for intersection with tempRay 
+			if (ignoreHitRecord)
 			{
-				//for every 3 points, get 3 transformed positions for triangle
-				tempTriangle = { mesh.transformedPositions[mesh.indices[idx * 3]], mesh.transformedPositions[mesh.indices[idx * 3 + 1]],
-								  mesh.transformedPositions[mesh.indices[idx * 3 + 2]] };
-
-				//set tempTriangle cull and material to mesh's cull and material
-				tempTriangle.cullMode = mesh.cullMode;
-				tempTriangle.materialIndex = mesh.materialIndex;
-
-				//checks for intersection with tempRay 
-				if (HitTest_Triangle_MullerTrombore(tempTriangle, tempRay, hitRecord))
+				//for shadows
+				for (int idx{}; idx < mesh.indices.size() / 3.f; ++idx)
 				{
-					tempRay.max = hitRecord.t;
+					//for every 3 points, get 3 transformed positions for triangle
+					tempTriangle = { mesh.transformedPositions[mesh.indices[idx * 3]],
+									 mesh.transformedPositions[mesh.indices[idx * 3 + 1]],
+									 mesh.transformedPositions[mesh.indices[idx * 3 + 2]] };
+
+					//set tempTriangle cull and material to mesh's cull and material
+					tempTriangle.cullMode = mesh.cullMode;
+					if (HitTest_Triangle_MullerTrombore(tempTriangle, tempRay))
+					{
+						return true;
+					}
+				}
+			}
+			else
+			{
+				//for lighting
+				for (int idx{}; idx < mesh.indices.size() / 3.f; ++idx)
+				{
+					//for every 3 points, get 3 transformed positions for triangle
+					tempTriangle = { mesh.transformedPositions[mesh.indices[idx * 3]], mesh.transformedPositions[mesh.indices[idx * 3 + 1]],
+									 mesh.transformedPositions[mesh.indices[idx * 3 + 2]] };
+
+					//set tempTriangle cull and material to mesh's cull and material
+					tempTriangle.cullMode = mesh.cullMode;
+					tempTriangle.materialIndex = mesh.materialIndex;
+					if (HitTest_Triangle_MullerTrombore(tempTriangle, tempRay, hitRecord))
+					{
+						tempRay.max = hitRecord.t;
+					}
 				}
 			}
 			if (!hitRecord.didHit) 
@@ -295,6 +354,7 @@ namespace dae
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray)
 		{
 			HitRecord temp{};
+			temp.t = ray.max;
 			return HitTest_TriangleMesh(mesh, ray, temp, true);
 		}
 #pragma endregion
@@ -321,7 +381,7 @@ namespace dae
 			switch (light.type)
 			{
 			case LightType::Point :
-				return light.color * (light.intensity / Square((light.origin - target).Magnitude()));
+				return light.color * (light.intensity /(light.origin - target).SqrMagnitude());
 				break;
 			case LightType::Directional :
 				return light.color * light.intensity;
@@ -376,11 +436,11 @@ namespace dae
 			}
 
 			//Precompute normals
-			for (uint64_t index = 0; index < indices.size(); index += 3)
+			for (auto& index : indices)
 			{
-				uint32_t i0 = indices[index];
-				uint32_t i1 = indices[index + 1];
-				uint32_t i2 = indices[index + 2];
+				uint32_t i0 = (3 * index);
+				uint32_t i1 = (3 * index) + 1;
+				uint32_t i2 = (3 * index) + 2;
 
 				Vector3 edgeV0V1 = positions[i1] - positions[i0];
 				Vector3 edgeV0V2 = positions[i2] - positions[i0];

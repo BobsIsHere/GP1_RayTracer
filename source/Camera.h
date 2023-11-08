@@ -32,7 +32,7 @@ namespace dae
 
 		Matrix cameraToWorld{};
 
-		const float speed{ 10.f };
+		const float speed{ 15.f };
 
 
 		Matrix CalculateCameraToWorld()
@@ -75,24 +75,50 @@ namespace dae
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-			if ((mouseState & SDL_BUTTON_RMASK) != 0)
+			if ((mouseState & SDL_BUTTON_RMASK) != 0 && !(mouseState & SDL_BUTTON_LMASK) != 0)
 			{
-				if (!(mouseState & SDL_BUTTON_LMASK) != 0)
+				// Right mouse button is pressed
+				totalYaw += mouseX;
+				totalPitch += mouseY;
+
+				// Create rotation matrices for pitch and yaw
+				const Matrix rotationX = Matrix::CreateRotationX(totalPitch * TO_RADIANS);
+				const Matrix rotationY = Matrix::CreateRotationY(totalYaw * TO_RADIANS);
+
+				// Combine the two rotations
+				const Matrix rotation = rotationX * rotationY;
+
+				// Update the camera's forward vector based on the new orientation
+				forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
+			}
+
+			if ((mouseState & SDL_BUTTON_LMASK) != 0 && (mouseState & SDL_BUTTON_RMASK) != 0)
+			{
+				origin += up * speed * mouseY * deltaTime;
+			}
+			else if ((mouseState & SDL_BUTTON_LMASK) != 0)
+			{
+				if (mouseY < 0)
 				{
-					// Right mouse button is pressed
-					totalYaw += mouseX;
-					totalPitch += mouseY;
-
-					// Create rotation matrices for pitch and yaw
-					const Matrix rotationX = Matrix::CreateRotationX(totalPitch * TO_RADIANS);
-					const Matrix rotationY = Matrix::CreateRotationY(totalYaw * TO_RADIANS);
-
-					// Combine the two rotations
-					const Matrix rotation = rotationX * rotationY;
-
-					// Update the camera's forward vector based on the new orientation
-					forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
+					origin += forward * speed * deltaTime;
 				}
+				else if (mouseY > 0)
+				{
+					origin -= forward * speed * deltaTime;
+				}
+
+				// Right mouse button is pressed
+				totalYaw += mouseX;
+
+				// Create rotation matrices for pitch and yaw
+				const Matrix rotationX = Matrix::CreateRotationX(totalPitch * TO_RADIANS);
+				const Matrix rotationY = Matrix::CreateRotationY(totalYaw * TO_RADIANS);
+
+				// Combine the two rotations
+				const Matrix rotation = rotationX * rotationY;
+
+				// Update the camera's forward vector based on the new orientation
+				forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
 			}
 		}
 	};
