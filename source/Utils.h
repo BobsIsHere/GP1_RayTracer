@@ -13,55 +13,64 @@ namespace dae
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{	
 			//variables
-			const Vector3 vecToCenter{ sphere.origin - ray.origin };
-			const float slantedSide{ vecToCenter.x * vecToCenter.x + vecToCenter.y * vecToCenter.y + vecToCenter.z * vecToCenter.z };
-			const float dotProduct{ Vector3::Dot(vecToCenter, ray.direction) };
-			const float discriminant{ slantedSide - dotProduct * dotProduct };
+			const Vector3 vecToCenter{ ray.origin - sphere.origin};
 
-			//if length of discriminant is bigger than radius of sphere -> ray didn't hit
-			if (discriminant > sphere.radius * sphere.radius)
+			//variables for quadratic equation
+			const float a{ ray.direction.x * ray.direction.x + ray.direction.y * ray.direction.y + ray.direction.z * ray.direction.z };
+			const float b{ Vector3::Dot(2.f * ray.direction, vecToCenter) };
+			const float c{ (vecToCenter.x * vecToCenter.x + vecToCenter.y * vecToCenter.y + vecToCenter.z * vecToCenter.z) - sphere.radius * sphere.radius };
+
+			//discriminant of equation
+			const float discriminant{ b * b - 4.f * a * c };
+			//if discriminant is negative or 0, then no intersection
+			if (discriminant <= 0.f)
 			{
 				return false;
 			}
 
-			const float distanceIntersection{ sqrtf(sphere.radius * sphere.radius - discriminant) };
-			const float t0{ dotProduct - distanceIntersection };
+			const float sqrtDiscriminant{ sqrt(discriminant) };
+			const float invA{ 1.f / (2.f * a) };
 
-			//if t0 is outside min and max of ray -> ray didn't hit
+			//first intersection along ray
+			const float t0{ (-b - sqrtDiscriminant) * invA };
 			if (t0 < ray.min || t0 > ray.max)
 			{
-				const float t1{ dotProduct + distanceIntersection };
-
-				if(t1 < ray.min || t1 > ray.max)
+				//second intersection along ray
+				const float t1{ ( -b + sqrtDiscriminant) * invA};
+				if (t1 < ray.min || t1 > ray.max)
 				{
 					return false;
 				}
-				else
+
+				if (ignoreHitRecord)
 				{
-					if (ignoreHitRecord)
-					{
-						return true;
-					}
-					//location of intersection
-					hitRecord.origin = ray.origin - t1 * ray.direction;
-					//normal of origin
-					hitRecord.normal = (hitRecord.origin - sphere.origin) / sphere.radius;
-					hitRecord.t = t1;
-					hitRecord.materialIndex = sphere.materialIndex;
-					return hitRecord.didHit = true;
+					return true;
 				}
+				//parameter along ray which intersetcion occured
+				hitRecord.t = t1;
+				//location of intersection
+				hitRecord.origin = ray.origin + t1 * ray.direction;
+				//normal of origin
+				hitRecord.normal = (hitRecord.origin - sphere.origin) / sphere.radius;
+				//represents material of geometry
+				hitRecord.materialIndex = sphere.materialIndex;
+				//whether ray intersected object
+				return hitRecord.didHit = true;
 			}
 
 			if (ignoreHitRecord)
 			{
 				return true;
 			}
+			//parameter along ray which intersetcion occured
+			hitRecord.t = t0;
 			//location of intersection
 			hitRecord.origin = ray.origin + t0 * ray.direction;
 			//normal of origin
 			hitRecord.normal = (hitRecord.origin - sphere.origin) / sphere.radius;
-			hitRecord.t = t0;
+			//represents material of geometry
 			hitRecord.materialIndex = sphere.materialIndex;
+			//whether ray intersected object
 			return hitRecord.didHit = true;
 		}
 
@@ -197,20 +206,23 @@ namespace dae
 				return false;
 			}
 
-			//cull mode check
+			//culling mode check based on direction of normal & ray direction
 			if (!ignoreHitRecord)
 			{
 				if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0.f ||
 					triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0.f)
 				{
+					//ray's direction aligned with orientation of cull mode, so no intersection
 					return false;
 				}
 			}
+			//if ignoreHitRecord is true, want to ignore back-face/front-face culling
 			else
 			{
 				if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot > 0.f ||
 					triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot < 0.f)
 				{
+					//ray's direction opposite of orientation of cull mode, so no intersection
 					return false;
 				}
 			}

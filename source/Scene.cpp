@@ -599,8 +599,8 @@ namespace dae {
 		AddPlane(Vector3{ -5.f, 0.f, 0.f }, Vector3{ 1.f, 0.f, 0.f }, matLambert_GrayBlue); //LEFT
 
 		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
-		Utils::ParseOBJ("Resources/lowpoly_bunny2.obj",
-			//Utils::ParseOBJ("Resources/lowpoly_bunny2.obj",
+		Utils::ParseOBJ("Resources/lowpoly_bunny.obj",
+			//Utils::ParseOBJ("Resources/lowpoly_bunny.obj",
 			pMesh->positions,
 			pMesh->normals,
 			pMesh->indices);
@@ -629,37 +629,39 @@ namespace dae {
 		m_Camera.origin = { 0, 3, -9 };
 		m_Camera.fovAngle = 45.f;
 
-		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
-		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
+		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ 0.15f, 0.15f, 0.35f }, 0.45f));
+		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 0.5f));
 
-		AddPlane(Vector3{ 0.f, 0.f, 10.f }, Vector3{ 0.f, 0.f, -1.f }, matLambert_GrayBlue); //BACK
-		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
-		AddPlane(Vector3{ 0.f, 10.f, 0.f }, Vector3{ 0.f, -1.f, 0.f }, matLambert_GrayBlue); //TOP
-		AddPlane(Vector3{ 5.f, 0.f, 0.f }, Vector3{ -1.f, 0.f, 0.f }, matLambert_GrayBlue); //RIGHT
-		AddPlane(Vector3{ -5.f, 0.f, 0.f }, Vector3{ 1.f, 0.f, 0.f }, matLambert_GrayBlue); //LEFT
+		const auto matLambert_Bottom = AddMaterial(new Material_Lambert({ 0.15f, 0.3f, 0.15f }, 1.f));
+		const auto matLambert_Top = AddMaterial(new Material_Lambert({ 0.2f, 0.2f, 0.8f }, 1.f));
 
-		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
-		Utils::ParseOBJ("Resources/birdhouse.obj",
+		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_Bottom); //BOTTOM
+		AddPlane(Vector3{ 0.f, 10.f, 0.f }, Vector3{ 0.f, -1.f, 0.f }, matLambert_Top); //TOP
+
+		pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
+		Utils::ParseOBJ("Resources/3props.obj",
 			//Utils::ParseOBJ("Resources/simple_object.obj",
 			pMesh->positions,
 			pMesh->normals,
 			pMesh->indices);
 
-		pMesh->Scale({ 2.f,2.f,2.f });
+		pMesh->Scale({ 0.04f,0.04f,0.04f });
+		pMesh->RotateY(110);
 
 		pMesh->UpdateAABB();
 		pMesh->UpdateTransforms();
 
-		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
-		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
-		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 30.f, ColorRGB{ 1.f, 0.6f, 0.4f }); // Backlight
+		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 50.f, ColorRGB{ 1.f, 0.8f, 0.6f }); // Front Light Left
+		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 30.f, ColorRGB{ 0.5f, 0.4f, 0.6f }); // Soft ambient light
+
+		// Additional light for the campfire effect
+		AddPointLight(Vector3{ 0.f, 1.f, 0.5f }, 2.5f, ColorRGB{ 1.f, 0.5f, 0.2f }); // Campfire light
 	}
 	void ExtraScene::Update(Timer* pTimer)
 	{
 		Scene::Update(pTimer);
-		const auto& yawAngle{ (cos(pTimer->GetTotal()) + 1.f) * PI };
-
-		pMesh->RotateY(yawAngle);
+		//pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
 		pMesh->UpdateTransforms();
 	}
 }
