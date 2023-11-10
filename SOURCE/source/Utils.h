@@ -443,22 +443,22 @@ namespace dae
 				//read till end of line and ignore all remaining chars
 				file.ignore(1000, '\n');
 
-				if (file.eof()) 
+				if (file.eof())
 					break;
 			}
 
 			//Precompute normals
-			for (auto& index : indices)
+			for (uint64_t index = 0; index < indices.size(); index += 3)
 			{
-				uint32_t i0 = (3 * index);
-				uint32_t i1 = (3 * index) + 1;
-				uint32_t i2 = (3 * index) + 2;
+				uint32_t i0 = indices[index];
+				uint32_t i1 = indices[index + 1];
+				uint32_t i2 = indices[index + 2];
 
 				Vector3 edgeV0V1 = positions[i1] - positions[i0];
 				Vector3 edgeV0V2 = positions[i2] - positions[i0];
 				Vector3 normal = Vector3::Cross(edgeV0V1, edgeV0V2);
 
-				if(isnan(normal.x))
+				if (isnan(normal.x))
 				{
 					int k = 0;
 				}
