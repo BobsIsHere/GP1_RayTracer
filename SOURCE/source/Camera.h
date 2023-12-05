@@ -56,19 +56,19 @@ namespace dae
 
 			if (pKeyboardState[SDL_SCANCODE_W])
 			{
-				origin.z += speed * deltaTime;
+				origin += forward * speed * deltaTime;
 			}
 			else if (pKeyboardState[SDL_SCANCODE_S])
 			{
-				origin.z -= speed * deltaTime;
+				origin -= forward * speed * deltaTime;
 			}
 			else if (pKeyboardState[SDL_SCANCODE_D])
 			{
-				origin.x += speed * deltaTime;
+				origin += right * speed * deltaTime;
 			}
 			else if (pKeyboardState[SDL_SCANCODE_A])
 			{
-				origin.x -= speed * deltaTime;
+				origin -= right * speed * deltaTime;
 			}
 
 			//mouse input
